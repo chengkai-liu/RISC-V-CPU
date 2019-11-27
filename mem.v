@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module mem(//todo
+module mem(
     input wire rst,
 
     input wire[`RegAddrBus] wd_i,
