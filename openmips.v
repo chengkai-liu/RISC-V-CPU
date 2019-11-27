@@ -1,4 +1,13 @@
 `include "defines.v"
+`include "pc_reg.v"
+`include "if_id.v"
+`include "id.v"
+`include "regfile.v"
+`include "id_ex.v"
+`include "ex.v"
+`include "ex_mem.v"
+`include "mem.v"
+`include "mem_wb.v"
 
 module openmips(
 	input wire clk,
