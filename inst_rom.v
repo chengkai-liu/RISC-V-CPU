@@ -1,22 +1,16 @@
 `include "defines.v"
 
 module inst_rom(
-	input wire ce,
-	input wire[`InstAddrBus] addr,
-	output reg[`InstBus] inst
-	
+    input wire[`InstAddrBus]        addr,
+    output reg[`InstBus]            inst
 );
 
-reg[`InstBus]  inst_mem[0:`InstMemNum-1];
+reg[`InstBus] inst_mem[0:`InstMemNum-1];
 
-initial $readmemh( "/home/lck/Desktop/data/inst_rom.data", inst_mem);
+initial $readmemb("/home/lck/Desktop/data/test.data", inst_mem);
 
 always @ (*) begin
-    if (ce == `ChipDisable) begin
-        inst <= `ZeroWord;
-    end else begin
-        inst <= inst_mem[addr[`InstMemNumLog2+1:2]];
-    end
+    inst <= inst_mem[addr[`InstMemNumLog2+1:2]];
 end
 
-endmodule
+endmodule // inst_rom
