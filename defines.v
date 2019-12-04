@@ -30,7 +30,7 @@
 `define AND_FUNCT3      3'b111
 `define SLLI_FUNCT3     3'b001
 `define SLL_FUNCT3      3'b001
-`define SRLI_SRAI_FUNCT3      3'b101
+`define SRLI_SRAI_FUNCT3     3'b101
 `define SRL_SRA_FUNCT3       3'b101
 `define BEQ_FUNCT3      3'b000
 `define BNE_FUNCT3      3'b001
@@ -53,7 +53,7 @@
 `define EXE_AUIPC_OP    8'b00000010
 `define EXE_JAL_OP      8'b00000011
 `define EXE_JALR_OP     8'b00000100
-//B-JUMP
+//BRANCH
 `define EXE_BEQ_OP      8'b00000101
 `define EXE_BNE_OP      8'b00000110
 `define EXE_BLT_OP      8'b00000111
@@ -91,6 +91,7 @@
 `define EXE_RES_LOGIC   3'b001
 `define EXE_RES_CMP     3'b010
 `define EXE_RES_SHIFT   3'b011
+`define EXE_RES_JUMP    3'b100
 
 
 `define InstAddrBus     31:0
