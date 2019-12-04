@@ -68,9 +68,18 @@ wire[`RegBus]           reg2_data;
 wire[`RegAddrBus]       reg1_addr;
 wire[`RegAddrBus]       reg2_addr;
 
+// Branch
+wire                    branch_flag;
+wire[`RegBus]           branch_addr;
+wire[`RegBus]           id_link_addr_o;
+wire[`RegBus]           ex_link_addr_i;
+
 //--------------instantiation------------------
 pc_reg pc_reg0(
+    //input
     .clk(clk),  .rst(rst),  
+    .branch_flag_i(branch_flag),      .branch_addr_i(branch_addr),
+    //output
     .pc(pc)     //no ce
 );
 
@@ -95,7 +104,10 @@ id id0(
 
     .aluop_o(id_aluop_o),       .alusel_o(id_alusel_o),
     .reg1_o(id_reg1_o),         .reg2_o(id_reg2_o),
-    .wd_o(id_wd_o),             .wreg_o(id_wreg_o)
+    .wd_o(id_wd_o),             .wreg_o(id_wreg_o),
+
+    .link_addr_o(id_link_addr_o),
+    .branch_flag_o(branch_flag),    .branch_addr_o(branch_addr)
 );
 
 regfile regfile0(
@@ -118,11 +130,13 @@ id_ex id_ex0(
     .id_aluop(id_aluop_o),      .id_alusel(id_alusel_o),
     .id_reg1(id_reg1_o),        .id_reg2(id_reg2_o),
     .id_wd(id_wd_o),            .id_wreg(id_wreg_o),
+    .id_link_addr(id_link_addr_o),
 
     //output
     .ex_aluop(ex_aluop_i),      .ex_alusel(ex_alusel_i),
     .ex_reg1(ex_reg1_i),        .ex_reg2(ex_reg2_i),
-    .ex_wd(ex_wd_i),            .ex_wreg(ex_wreg_i)
+    .ex_wd(ex_wd_i),            .ex_wreg(ex_wreg_i),
+    .ex_link_addr(ex_link_addr_i)
 );
 
 ex ex0(
@@ -132,6 +146,7 @@ ex ex0(
     .aluop_i(ex_aluop_i),       .alusel_i(ex_alusel_i),
     .reg1_i(ex_reg1_i),         .reg2_i(ex_reg2_i),
     .wd_i(ex_wd_i),             .wreg_i(ex_wreg_i),
+    .link_addr_i(ex_link_addr_i),
 
     //output
     .wd_o(ex_wd_o),             .wreg_o(ex_wreg_o),
