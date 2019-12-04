@@ -10,6 +10,8 @@ module ex(
     input wire[`RegAddrBus]         wd_i,
     input wire                      wreg_i,
 
+    input wire[`RegBus]             link_addr_i,
+
     output reg[`RegAddrBus]         wd_o,
     output reg                      wreg_o,
     output reg[`RegBus]             wdata_o
@@ -100,6 +102,9 @@ always @ (*) begin
         end
         `EXE_RES_SHIFT: begin
             wdata_o <= shiftres;
+        end
+        `EXE_RES_JUMP: begin
+            wdata_o <= link_addr_i;
         end
         default: begin
             wdata_o <= `ZeroWord;
