@@ -22,6 +22,13 @@ module regfile(
 
 reg[`RegBus] regs[0:`RegNum - 1];
 
+//set all registers 0
+initial begin
+    for (integer i = 0; i < 32; i = i + 1) begin
+        regs[i] <= `ZeroWord;
+    end
+end
+
 //-----------------write----------------
 always @ (posedge clk) begin
     if (rst == `RstDisable) begin

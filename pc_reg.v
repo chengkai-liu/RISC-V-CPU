@@ -4,8 +4,8 @@ module pc_reg(
     input wire clk,
     input wire rst,
 
-    input wire      branch_flag_i,
-    input wire      branch_addr_i,
+    input wire                  branch_flag_i,
+    input wire[`RegBus]         branch_addr_i,
 
     output reg[`InstAddrBus] pc
 );
