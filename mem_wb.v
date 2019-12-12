@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module mem_wb(
-    input wire      clk,
-    input wire      rst,
+    input wire                          clk,
+    input wire                          rst,
 
     // from ctrl
     input wire[`StallBus]               stall,

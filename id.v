@@ -2,29 +2,31 @@
 
 module id(
     input wire                  rst,
+
     input wire[`InstAddrBus]    pc_i,
     input wire[`InstBus]        inst_i,
 
-    //read from regfile
+    // from regfile
     input wire[`RegBus]         reg1_data_i,
     input wire[`RegBus]         reg2_data_i,
 
-    //data hazard
+    // from ex for data hazard
     input wire                  ex_wreg_i,
     input wire[`RegBus]         ex_wdata_i,
     input wire[`RegAddrBus]     ex_wd_i,
 
+    // from mem for data hazard
     input wire                  mem_wreg_i,
     input wire[`RegBus]         mem_wdata_i,
     input wire[`RegAddrBus]     mem_wd_i,
 
-    //output to regfile
+    // to regfile
     output reg                  reg1_read_o,
     output reg                  reg2_read_o,
     output reg[`RegAddrBus]     reg1_addr_o,
     output reg[`RegAddrBus]     reg2_addr_o,
 
-    //send to EX stage
+    // to ex
     output reg[`AluOpBus]       aluop_o,
     output reg[`AluSelBus]      alusel_o,
     output reg[`RegBus]         reg1_o,
@@ -32,10 +34,16 @@ module id(
     output reg                  wreg_o,
     output reg[`RegAddrBus]     wd_o,
 
-    //branch
-    output reg[`RegBus]         link_addr_o,
+/*---------------------jump / branch------------------------*/
+    // to ex
+    output reg[`InstAddrBus]    jb_link_addr_o,
+    // to pc_reg 
     output reg                  branch_flag_o,
-    output reg[`RegBus]         branch_addr_o
+    output reg[`InstAddrBus]    branch_addr_o,
+
+/*---------------------load / store--------------------------*/
+    // to ex
+    output reg[`RegBus]         ls_offset_o 
 );
 
 //opcode, funct3, funct7
@@ -50,31 +58,30 @@ reg instvalid;
 //------------1. instruction decode----------------
 always @ (*) begin
     if (rst == `RstEnable) begin
-        aluop_o <= `EXE_NOP_OP;
-        alusel_o <= `EXE_RES_NOP;
-        wd_o <= `NOPRegAddr;
-        wreg_o <= `WriteDisable;
-        instvalid <= `InstValid;
-        reg1_read_o <= 1'b0;
-        reg2_read_o <= 1'b0;
-        reg1_addr_o <= `NOPRegAddr;
-        reg2_addr_o <= `NOPRegAddr;
-        imm <= 32'h0;
+        aluop_o             <= `EXE_NOP_OP;
+        alusel_o            <= `EXE_RES_NOP;
+        wd_o                <= `NOPRegAddr;
+        wreg_o              <= `WriteDisable;
+        instvalid           <= `InstValid;
+        reg1_read_o         <= `ReadDisable;
+        reg2_read_o         <= `ReadDisable;
+        reg1_addr_o         <= `NOPRegAddr;
+        reg2_addr_o         <= `NOPRegAddr;
+        imm                 <= `ZeroWord;
     end else begin
-        aluop_o <= `EXE_NOP_OP;
-        alusel_o <= `EXE_RES_NOP;
-        wd_o <= inst_i[11:7];
-        wreg_o <= `WriteDisable;
-        instvalid <= `InstInvalid;
-        reg1_read_o <= 1'b0;
-        reg2_read_o <= 1'b0;
-        reg1_addr_o <= inst_i[19:15];
-        reg2_addr_o <= inst_i[24:20];
-        imm <= 32'h0;
-        link_addr_o <= `ZeroWord;
-        branch_flag_o <= 1'b0;
-        branch_addr_o <= `ZeroWord;
-
+        aluop_o             <= `EXE_NOP_OP;
+        alusel_o            <= `EXE_RES_NOP;
+        wd_o                <= inst_i[11:7];
+        wreg_o              <= `WriteDisable;
+        instvalid           <= `InstInvalid;
+        reg1_read_o         <= `ReadDisable;
+        reg2_read_o         <= `ReadDisable;
+        reg1_addr_o         <= inst_i[19:15];
+        reg2_addr_o         <= inst_i[24:20];
+        imm                 <= `ZeroWord;
+        jb_link_addr_o      <= `ZeroWord;
+        branch_flag_o       <= `NoBranch;
+        branch_addr_o       <= `ZeroWord;
         case (op)
             7'b0110111: begin
                 //todo LUI
@@ -83,114 +90,85 @@ always @ (*) begin
                 //todo AUIPC
             end // 7'b0010111 AUIPC
             7'b1101111: begin
-                aluop_o <= `EXE_JAL_OP;
-                alusel_o <= `EXE_RES_JUMP;
-                wreg_o <= `WriteEnable;
-                instvalid <= `InstValid;
-                reg1_read_o <= 1'b0;
-                reg2_read_o <= 1'b0;
-                link_addr_o <= pc_i + 4; //link_addr_o
-                branch_flag_o <= 1'b1;
-                branch_addr_o <= pc_i + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
+                aluop_o             <= `EXE_JAL_OP;
+                alusel_o            <= `EXE_RES_JB;
+                wreg_o              <= `WriteEnable;
+                instvalid           <= `InstValid;
+                reg1_read_o         <= `ReadDisable;
+                reg2_read_o         <= `ReadDisable;
+                jb_link_addr_o      <= pc_i + 4; 
+                branch_flag_o       <= `Branch;
+                branch_addr_o       <= pc_i + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
             end // 7'b1101111
             7'b1100111: begin
-                aluop_o <= `EXE_JALR_OP;
-                alusel_o <= `EXE_RES_JUMP;
-                wreg_o <= `WriteEnable;
-                instvalid <= `InstValid;
-                reg1_read_o <= 1'b1;
-                reg2_read_o <= 1'b0;
-                link_addr_o <= pc_i + 4;
-                branch_flag_o <= 1'b1;
-                branch_addr_o <= reg1_o + {20'b0, inst_i[31:20]}; //todo unsure
+                aluop_o             <= `EXE_JALR_OP;
+                alusel_o            <= `EXE_RES_JB;
+                wreg_o              <= `WriteEnable;
+                instvalid           <= `InstValid;
+                reg1_read_o         <= `ReadEnable;
+                reg2_read_o         <= `ReadDisable;
+                jb_link_addr_o      <= pc_i + 4;
+                branch_flag_o       <= `Branch;
+                branch_addr_o       <= reg1_o + {20'b0, inst_i[31:20]}; //todo unsure
             end // 7'b1100111
             7'b1100011: begin
+                wreg_o              <= `WriteDisable;
+                alusel_o            <= `EXE_RES_JB;
+                reg1_read_o         <= `ReadEnable;
+                reg2_read_o         <= `ReadEnable;
+                instvalid           <= `InstValid;
+                branch_flag_o       <= `Branch;
                 case (funct3)
                     `BEQ_FUNCT3: begin
-                        wreg_o <= `WriteDisable;
-                        aluop_o <= `EXE_BEQ_OP;
-                        alusel_o <= `EXE_RES_JUMP;
-                        reg1_read_o <= 1'b1;
-                        reg2_read_o <= 1'b1;
-                        instvalid <= `InstValid;
-                        branch_flag_o <= 1'b1;
+                        aluop_o             <= `EXE_BEQ_OP;
                         if (reg1_o == reg2_o) begin
-                            branch_addr_o <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o <= pc_i + 4;
+                            branch_addr_o   <= pc_i + 4;
                         end
                     end
                     `BNE_FUNCT3: begin
-                        wreg_o <= `WriteDisable;
-                        aluop_o <= `EXE_BNE_OP;
-                        alusel_o <= `EXE_RES_JUMP;
-                        reg1_read_o <= 1'b1;
-                        reg2_read_o <= 1'b1;
-                        instvalid <= `InstValid;
-                        branch_flag_o <= 1'b1;
+                        aluop_o             <= `EXE_BNE_OP;
                         if (reg1_o != reg2_o) begin
-                            branch_addr_o <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o <= pc_i + 4;
+                            branch_addr_o   <= pc_i + 4;
                         end
                     end
                     `BLT_FUNCT3: begin
-                        wreg_o <= `WriteDisable;
-                        aluop_o <= `EXE_BLT_OP;
-                        alusel_o <= `EXE_RES_JUMP;
-                        reg1_read_o <= 1'b1;
-                        reg2_read_o <= 1'b1;
-                        instvalid <= `InstValid;
-                        branch_flag_o <= 1'b1;
+                        aluop_o             <= `EXE_BLT_OP;
                         if ($signed(reg1_o) < $signed(reg2_o)) begin
-                            branch_addr_o <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o <= pc_i + 4;
+                            branch_addr_o   <= pc_i + 4;
                         end
                     end
                     `BGE_FUNCT3: begin
-                        wreg_o <= `WriteDisable;
-                        aluop_o <= `EXE_BGE_OP;
-                        alusel_o <= `EXE_RES_JUMP;
-                        reg1_read_o <= 1'b1;
-                        reg2_read_o <= 1'b1;
-                        instvalid <= `InstValid;
-                        branch_flag_o <= 1'b1;
+                        aluop_o             <= `EXE_BGE_OP;
                         if (!($signed(reg1_o) < $signed(reg2_o))) begin
-                            branch_addr_o <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o <= pc_i + 4;
+                            branch_addr_o   <= pc_i + 4;
                         end
                     end
                     `BLTU_FUNCT3: begin
-                        wreg_o <= `WriteDisable;
-                        aluop_o <= `EXE_BLTU_OP;
-                        alusel_o <= `EXE_RES_JUMP;
-                        reg1_read_o <= 1'b1;
-                        reg2_read_o <= 1'b1;
-                        instvalid <= `InstValid;
-                        branch_flag_o <= 1'b1;
+                        aluop_o             <= `EXE_BLTU_OP;
                         if (reg1_o < reg2_o) begin
-                            branch_addr_o <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o <= pc_i + 4;
+                            branch_addr_o   <= pc_i + 4;
                         end
                     end
                     `BGEU_FUNCT3: begin
-                        wreg_o <= `WriteDisable;
-                        aluop_o <= `EXE_BGEU_OP;
-                        alusel_o <= `EXE_RES_JUMP;
-                        reg1_read_o <= 1'b1;
-                        reg2_read_o <= 1'b1;
-                        instvalid <= `InstValid;
-                        branch_flag_o <= 1'b1;
+                        aluop_o             <= `EXE_BGEU_OP;
                         if (!(reg1_o < reg2_o)) begin
-                            branch_addr_o <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o <= pc_i + 4;
+                            branch_addr_o   <= pc_i + 4;
                         end
                     end
-                    
+                    default: begin
+                    end
                 endcase
             end // 7'b1100011 BRANCH
             7'b0000011: begin
@@ -200,108 +178,111 @@ always @ (*) begin
                 //todo STORE
             end // 7'b0100011 STORE
             7'b0010011: begin
-                wreg_o <= `WriteEnable;
-                instvalid <= `InstValid;
-                reg1_read_o <= 1'b1;
-                reg2_read_o <= 1'b0;
+                wreg_o          <= `WriteEnable;
+                instvalid       <= `InstValid;
+                reg1_read_o     <= `ReadEnable;
+                reg2_read_o     <= `ReadDisable;
                 case (funct3)
                     `ADDI_FUNCT3: begin
-                        aluop_o <= `EXE_ADD_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
-                        imm <= {{20{inst_i[31]}}, inst_i[31:20]};
+                        aluop_o         <= `EXE_ADD_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
+                        imm             <= {{20{inst_i[31]}}, inst_i[31:20]};
                     end
                     `SLTI_FUNCT3: begin
-                        aluop_o <= `EXE_SLT_OP;
-                        alusel_o <= `EXE_RES_CMP;
-                        imm <= {{20{inst_i[31]}}, inst_i[31:20]};
+                        aluop_o         <= `EXE_SLT_OP;
+                        alusel_o        <= `EXE_RES_CMP;
+                        imm             <= {{20{inst_i[31]}}, inst_i[31:20]};
                     end 
                     `SLTIU_FUNCT3: begin
-                        aluop_o <= `EXE_SLTU_OP;
-                        alusel_o <= `EXE_RES_CMP;
-                        imm <= {{20{inst_i[31]}}, inst_i[31:20]};
+                        aluop_o         <= `EXE_SLTU_OP;
+                        alusel_o        <= `EXE_RES_CMP;
+                        imm             <= {{20{inst_i[31]}}, inst_i[31:20]};
                     end
                     `XORI_FUNCT3: begin
-                        aluop_o <= `EXE_XOR_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
-                        imm <= {{20{inst_i[31]}}, inst_i[31:20]};
-                    end
+                        aluop_o         <= `EXE_XOR_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
+                        imm             <= {{20{inst_i[31]}}, inst_i[31:20]};
+                    end 
                     `ORI_FUNCT3: begin
-                        aluop_o <= `EXE_OR_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
-                        imm <= {{20{inst_i[31]}}, inst_i[31:20]};
+                        aluop_o         <= `EXE_OR_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
+                        imm             <= {{20{inst_i[31]}}, inst_i[31:20]};
                     end 
                     `ANDI_FUNCT3: begin
-                        aluop_o <= `EXE_AND_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
-                        imm <= {{20{inst_i[31]}}, inst_i[31:20]};
+                        aluop_o         <= `EXE_AND_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
+                        imm             <= {{20{inst_i[31]}}, inst_i[31:20]};
                     end
                     `SLLI_FUNCT3: begin
-                        aluop_o <= `EXE_SLL_OP;
-                        alusel_o <= `EXE_RES_SHIFT;
-                        imm <= {27'h0, inst_i[24:20]};
+                        aluop_o         <= `EXE_SLL_OP;
+                        alusel_o        <= `EXE_RES_SHIFT;
+                        imm             <= {27'h0, inst_i[24:20]};
                     end
                     `SRLI_SRAI_FUNCT3: begin
-                        alusel_o <= `EXE_RES_SHIFT;
-                        imm <= {27'h0, inst_i[24:20]};
+                        alusel_o        <= `EXE_RES_SHIFT;
+                        imm             <= {27'h0, inst_i[24:20]};
                         if (inst_i[30] == 1'b0) begin
-                            aluop_o <= `EXE_SRL_OP;
+                            aluop_o     <= `EXE_SRL_OP;
                         end else begin
-                            aluop_o <= `EXE_SRA_OP;
+                            aluop_o     <= `EXE_SRA_OP;
                         end
+                    end
+                    default: begin
                     end
                endcase
             end // 7'b0010011
             7'b0110011: begin
-                wreg_o <= `WriteEnable;
-                instvalid <= `InstValid;
-                reg1_read_o <= 1'b1;
-                reg2_read_o <= 1'b1;
-                imm <= `ZeroWord;
+                wreg_o              <= `WriteEnable;
+                instvalid           <= `InstValid;
+                reg1_read_o         <= `ReadEnable;
+                reg2_read_o         <= `ReadEnable;
+                imm                 <= `ZeroWord;
                 case (funct3)
                     `ADD_SUB_FUNCT3: begin
-                        alusel_o <= `EXE_RES_LOGIC;
+                        alusel_o        <= `EXE_RES_LOGIC;
                         if (inst_i[30] == 1'b0) begin
-                            aluop_o <= `EXE_ADD_OP;
+                            aluop_o     <= `EXE_ADD_OP;
                         end else begin
-                            aluop_o <= `EXE_SUB_OP;
+                            aluop_o     <= `EXE_SUB_OP;
                         end
                     end
                     `SLL_FUNCT3: begin
-                        aluop_o <= `EXE_SLL_OP;
-                        alusel_o <= `EXE_RES_SHIFT;
+                        aluop_o         <= `EXE_SLL_OP;
+                        alusel_o        <= `EXE_RES_SHIFT;
                     end
                     `SLT_FUNCT3: begin
-                        aluop_o <= `EXE_SLT_OP;
-                        alusel_o <= `EXE_RES_CMP;
+                        aluop_o         <= `EXE_SLT_OP;
+                        alusel_o        <= `EXE_RES_CMP;
                     end
                     `SLTU_FUNCT3: begin
-                        aluop_o <= `EXE_SLTU_OP;
-                        alusel_o <= `EXE_RES_CMP;
+                        aluop_o         <= `EXE_SLTU_OP;
+                        alusel_o        <= `EXE_RES_CMP;
                     end
                     `XOR_FUNCT3: begin
-                        aluop_o <= `EXE_XOR_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
+                        aluop_o         <= `EXE_XOR_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
                     end
                     `SRL_SRA_FUNCT3: begin
-                        alusel_o <= `EXE_RES_SHIFT;
+                        alusel_o        <= `EXE_RES_SHIFT;
                         if (inst_i[30] == 1'b0) begin
-                            aluop_o <= `EXE_SRL_OP;
+                            aluop_o     <= `EXE_SRL_OP;
                         end else begin
-                            aluop_o <= `EXE_SRA_OP;
+                            aluop_o     <= `EXE_SRA_OP;
                         end
                     end
                     `OR_FUNCT3: begin
-                        aluop_o <= `EXE_OR_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
+                        aluop_o         <= `EXE_OR_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
                     end
                     `AND_FUNCT3: begin
-                        aluop_o <= `EXE_AND_OP;
-                        alusel_o <= `EXE_RES_LOGIC;
+                        aluop_o         <= `EXE_AND_OP;
+                        alusel_o        <= `EXE_RES_LOGIC;
                     end
+                    default: begin
+                end
                 endcase 
             end // 7'b0110011
             default: begin
-                //none
             end
         endcase
     end
