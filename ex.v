@@ -10,11 +10,14 @@ module ex(
     input wire[`RegAddrBus]         wd_i,
     input wire                      wreg_i,
 
-    input wire[`RegBus]             link_addr_i,
+    input wire[`RegBus]             jb_link_addr_i,
 
     output reg[`RegAddrBus]         wd_o,
     output reg                      wreg_o,
-    output reg[`RegBus]             wdata_o
+    output reg[`RegBus]             wdata_o,
+
+    output reg[`AluOpBus]           aluop_o,
+    output reg[`AluSelBus]          alusel_o
 );
 
 reg[`RegBus]        logicout;
@@ -90,8 +93,18 @@ end // shift
 
 //---------------2-----------------
 always @ (*) begin
-    wd_o <= wd_i;
-    wreg_o <= wreg_i;
+    if (rst) begin
+        aluop_o         <= `EXE_NOP_OP;
+        alusel_o        <= `EXE_RES_NOP;
+        wd_o            <= `ZeroWord;
+        wreg_o          <= `WriteDisable;
+    end else begin
+        aluop_o         <= aluop_i;
+        alusel_o        <= alusel_i;
+        wd_o            <= wd_i;
+        wreg_o          <= wreg_i;
+    end
+
     case  (alusel_i)
         `EXE_RES_LOGIC: begin
             wdata_o <= logicout;
@@ -103,8 +116,8 @@ always @ (*) begin
         `EXE_RES_SHIFT: begin
             wdata_o <= shiftres;
         end
-        `EXE_RES_JUMP: begin
-            wdata_o <= link_addr_i;
+        `EXE_RES_JB: begin
+            wdata_o <= jb_link_addr_i;
         end
         default: begin
             wdata_o <= `ZeroWord;

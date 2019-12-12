@@ -11,6 +11,8 @@
 `define False_v         1'b0
 `define Stop            1'b1
 `define NoStop          1'b0
+`define Branch          1'b1
+`define NoBranch        1'b0
 
 `define ZeroWord        32'h00000000
 
@@ -91,7 +93,7 @@
 `define EXE_RES_LOGIC   3'b001
 `define EXE_RES_CMP     3'b010
 `define EXE_RES_SHIFT   3'b011
-`define EXE_RES_JUMP    3'b100
+`define EXE_RES_JB      3'b100
 `define EXE_RES_LS      3'b101
 `define EXE_RES_LOAD    3'b110
 `define EXE_RES_STORE   3'b111
@@ -102,10 +104,11 @@
 `define AluSelBus       2:0
 `define InstAddrBus     31:0
 `define InstBus         31:0
-`define RegAddrBus      4:0     //the index of register
-`define RegBus          31:0    //data
+`define RegAddrBus      4:0     //the index of registers
+`define RegBus          31:0    //data of registers
 `define DoubleRegBus    63:0
 `define StallBus        6:0
+`define DataBus         7:0
 
 
 `define InstMemNum      131071
