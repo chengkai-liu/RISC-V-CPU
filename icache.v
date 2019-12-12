@@ -1,10 +1,10 @@
 `include "defines.v"
 
-module if(
+module icache(
     input wire              clk,
     input wire              rst,
-
+    input wire              rdy,
 
 );
 
-endmodule // if
+endmodule // icache
