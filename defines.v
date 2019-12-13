@@ -13,6 +13,12 @@
 `define NoStop          1'b0
 `define Branch          1'b1
 `define NoBranch        1'b0
+`define Valid           1'b1
+`define Invalid         1'b0
+`define IsReady         1'b1
+`define NotReady        1'b0
+`define Hit             1'b1
+`define Miss            1'b0
 
 `define ZeroWord        32'h00000000
 
@@ -109,12 +115,15 @@
 `define DoubleRegBus    63:0
 `define StallBus        6:0
 `define DataBus         7:0
+`define TagBus          17 - `BlockNumLog2:0
+`define IndexBus        `BlockNumLog2 - 1:0
 
 
 `define InstMemNum      131071
 `define InstMemNumLog2  17
 
-
+`define BlockNum        128
+`define BlockNumLog2    7       
 
 `define RegWidth        32
 `define DoubleRegWidth  64
