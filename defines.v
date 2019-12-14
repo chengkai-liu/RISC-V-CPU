@@ -21,6 +21,7 @@
 `define Miss            1'b0
 
 `define ZeroWord        32'h00000000
+`define Zero8           8'h00;
 
 //----------funct3--------------
 `define NOP_FUNCT3      3'b000
@@ -113,7 +114,7 @@
 `define RegAddrBus      4:0     //the index of registers
 `define RegBus          31:0    //data of registers
 `define DoubleRegBus    63:0
-`define StallBus        6:0
+`define StallBus        5:0
 `define DataBus         7:0
 `define TagBus          17 - `BlockNumLog2:0
 `define IndexBus        `BlockNumLog2 - 1:0

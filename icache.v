@@ -53,7 +53,7 @@ always @ (posedge clk) begin
         end
     end else if (we_i) begin
         valid_bit[windex_i]         <= `Valid;
-        cache_tag[windex_i]         <= wtag_i;
+        cache_tag[windex_i]         <= wpc_i[17:`BlockNumLog2];
         cache_data[windex_i]        <= winst_i;
     end
 end
