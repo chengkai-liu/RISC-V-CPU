@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module if(
+module stage_if(
     input wire                      clk,
     input wire                      rst,
 
