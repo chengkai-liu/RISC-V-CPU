@@ -23,11 +23,11 @@ always @ (posedge clk) begin
         wb_wd               <= `NOPRegAddr;
         wb_wreg             <= `WriteDisable;
         wb_wdata            <= `ZeroWord;
-    end else if (stall[5] == `Stop && stall[6] == `NoStop) begin
+    end else if (stall[4] == `Stop && stall[5] == `NoStop) begin
         wb_wd               <= `NOPRegAddr;
         wb_wreg             <= `WriteDisable;
         wb_wdata            <= `ZeroWord;
-    end else if (stall[5] == `NoStop) begin
+    end else if (stall[4] == `NoStop) begin
         wb_wd               <= mem_wd;
         wb_wreg             <= mem_wreg;
         wb_wdata            <= mem_wdata;

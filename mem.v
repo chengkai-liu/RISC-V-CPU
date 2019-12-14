@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module mem(
+module stage_mem(
     input wire                          clk,
     input wire                          rst,
     

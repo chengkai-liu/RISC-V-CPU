@@ -101,7 +101,7 @@
 `define EXE_RES_CMP     3'b010
 `define EXE_RES_SHIFT   3'b011
 `define EXE_RES_JB      3'b100
-`define EXE_RES_LS      3'b101
+`define EXE_RES_OTHER   3'b101
 `define EXE_RES_LOAD    3'b110
 `define EXE_RES_STORE   3'b111
 

@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module ex(
+module stage_ex(
     input wire          rst,
 
     input wire[`AluOpBus]           aluop_i,
@@ -10,7 +10,7 @@ module ex(
     input wire[`RegAddrBus]         wd_i,
     input wire                      wreg_i,
 
-    input wire[`RegBus]             jb_link_addr_i,
+    input wire[`RegBus]             jb_link_addr_i, //todo
 
     output reg[`RegAddrBus]         wd_o,
     output reg                      wreg_o,
@@ -110,7 +110,6 @@ always @ (*) begin
             wdata_o <= logicout;
         end
         `EXE_RES_CMP: begin
-            //todo unsure
             wdata_o <= cmpres;
         end
         `EXE_RES_SHIFT: begin
@@ -118,6 +117,15 @@ always @ (*) begin
         end
         `EXE_RES_JB: begin
             wdata_o <= jb_link_addr_i;
+        end
+        `EXE_RES_LOAD: begin
+            // todo
+        end
+        `EXE_RES_STORE: begin
+            // todo
+        end
+        `EXE_RES_OTHER: begin
+            wdata_o <= reg1_i;
         end
         default: begin
             wdata_o <= `ZeroWord;

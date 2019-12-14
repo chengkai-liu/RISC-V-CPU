@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module id(
+module stage_id(
     input wire                  rst,
 
     input wire[`InstAddrBus]    pc_i,
@@ -68,6 +68,10 @@ always @ (*) begin
         reg1_addr_o         <= `NOPRegAddr;
         reg2_addr_o         <= `NOPRegAddr;
         imm                 <= `ZeroWord;
+        jb_link_addr_o      <= `ZeroWord;
+        branch_flag_o       <= `NoBranch;
+        branch_addr_o       <= `ZeroWord;
+        ls_offset_o         <= `ZeroWord;
     end else begin
         aluop_o             <= `EXE_NOP_OP;
         alusel_o            <= `EXE_RES_NOP;
@@ -82,12 +86,25 @@ always @ (*) begin
         jb_link_addr_o      <= `ZeroWord;
         branch_flag_o       <= `NoBranch;
         branch_addr_o       <= `ZeroWord;
+        ls_offset_o         <= `ZeroWord;
         case (op)
             7'b0110111: begin
-                //todo LUI
+                aluop_o             <= `EXE_LUI_OP;
+                alusel_o            <= `EXE_RES_OTHER;
+                wreg_o              <= `WriteEnable;
+                instvalid           <= `InstValid;
+                reg1_read_o         <= `ReadDisable;
+                reg2_read_o         <= `ReadDisable;
+                imm                 <= {inst_i[31:12], 12'b0};
             end // 7'b0110111 LUI
             7'b0010111: begin
-                //todo AUIPC
+                aluop_o             <= `EXE_AUIPC_OP;
+                alusel_o            <= `EXE_RES_OTHER;
+                wreg_o              <= `WriteEnable;
+                instvalid           <= `InstValid;
+                reg1_read_o         <= `ReadDisable;
+                reg2_read_o         <= `ReadDisable;
+                imm                 <= {inst_i[31:12], 12'b0} + pc_i;
             end // 7'b0010111 AUIPC
             7'b1101111: begin
                 aluop_o             <= `EXE_JAL_OP;
@@ -172,10 +189,52 @@ always @ (*) begin
                 endcase
             end // 7'b1100011 BRANCH
             7'b0000011: begin
-                //todo LOAD
+                alusel_o        <= `EXE_RES_LOAD;
+                wreg_o          <= `WriteEnable;
+                instvalid       <= `InstValid;
+                reg1_read_o     <= `ReadEnable;
+                reg2_read_o     <= `ReadDisable;
+                ls_offset_o     <= {{20{inst_i[31]}}, inst_i[31:20]};
+                case (funct3) 
+                    `LB_FUNCT3: begin
+                        aluop_o     <= `EXE_LB_OP;
+                    end
+                    `LH_FUNCT3: begin
+                        aluop_o     <= `EXE_LH_OP;
+                    end
+                    `LW_FUNCT3: begin
+                        aluop_o     <= `EXE_LW_OP;
+                    end
+                    `LBU_FUNCT3: begin
+                        aluop_o     <= `EXE_LBU_OP;
+                    end
+                    `LHU_FUNCT3: begin
+                        aluop_o     <= `EXE_LHU_OP;
+                    end
+                    default: begin
+                    end
+                endcase
             end // 7'b0000011 LOAD
             7'b0100011: begin
-                //todo STORE
+                alusel_o        <= `EXE_RES_STORE;
+                wreg_o          <= `WriteDisable;
+                instvalid       <= `InstValid;
+                reg1_read_o     <= `ReadEnable;
+                reg2_read_o     <= `ReadEnable;
+                ls_offset_o     <= {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]};
+                case (funct3)
+                    `SB_FUNCT3: begin
+                        aluop_o     <= `EXE_SB_OP;
+                    end
+                    `SW_FUNCT3: begin
+                        aluop_o     <= `EXE_SW_OP;
+                    end
+                    `SH_FUNCT3: begin
+                        aluop_o     <= `EXE_SH_OP;
+                    end
+                    default: begin
+                    end
+                endcase
             end // 7'b0100011 STORE
             7'b0010011: begin
                 wreg_o          <= `WriteEnable;
