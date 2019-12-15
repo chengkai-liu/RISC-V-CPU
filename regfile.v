@@ -1,8 +1,9 @@
 `include "defines.v"
 
 module regfile(
-    input wire clk,
-    input wire rst,
+    input wire                  clk,
+    input wire                  rst,
+    input wire                  rdy,
 
     // write port
     input wire                  we,
@@ -23,8 +24,9 @@ module regfile(
 reg[`RegBus] regs[0:`RegNum - 1];
 
 //set all registers 0
+integer i;
 initial begin
-    for (integer i = 0; i < 32; i = i + 1) begin
+    for (i = 0; i < 32; i = i + 1) begin
         regs[i] <= `ZeroWord;
     end
 end
@@ -40,7 +42,7 @@ end
 
 //-----------------read 1----------------
 always @ (*) begin
-    if (rst == `RstEnable) begin
+    if (rst == `RstEnable || rdy == `NotReady) begin
         rdata1 <= `ZeroWord;
     end else if (raddr1 == `RegNumLog2'h0) begin
         rdata1 <= `ZeroWord;
@@ -55,7 +57,7 @@ end
 
 //-----------------read 2----------------
 always @ (*) begin
-    if (rst == `RstEnable) begin
+    if (rst == `RstEnable || rdy == `NotReady) begin
         rdata2 <= `ZeroWord;
     end else if (raddr2 == `RegNumLog2'h0) begin
         rdata2 <= `ZeroWord;

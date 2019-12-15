@@ -8,7 +8,7 @@ module stage_if(
     input wire[`StallBus]           stall,
 
     // data input from cpu.v
-    input wire[`DataBus]            mem_din_i,
+    input wire[`DataBus]            if_mem_din_i,
 
     // from id branch
     input wire                      branch_flag_i,
@@ -95,7 +95,7 @@ always @ (posedge clk) begin
             end
             4'b0010: begin
                 if_mem_a_o              <= pc_o[17:0] + 17'h2;
-                inst_block1             <= mem_din_i;
+                inst_block1             <= if_mem_din_i;
                 cnt                     <= 4'b0011;
             end
             4'b0011: begin
@@ -103,7 +103,7 @@ always @ (posedge clk) begin
                     cnt                 <= 4'b1010;
                 end else begin
                     if_mem_a_o          <= pc_o[17:0] + 17'h3;
-                    inst_block2         <= mem_din_i;
+                    inst_block2         <= if_mem_din_i;
                     cnt                 <= 4'b0100;
                 end
             end
@@ -111,15 +111,15 @@ always @ (posedge clk) begin
                 if (stall[0] == `Stop) begin
                     cnt                 <= 4'b1100;
                 end else begin
-                    inst_block3         <= mem_din_i;
+                    inst_block3         <= if_mem_din_i;
                     cnt                 <= 4'b0101;
                 end
             end
             4'b0101: begin
-                inst_o              <= {mem_din_i, inst_block3, inst_block2, inst_block1};
+                inst_o              <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
                 icache_we_o         <= `WriteEnable;
                 icache_waddr_o      <= icache_raddr_o;
-                icache_winst_o      <= {mem_din_i, inst_block3, inst_block2, inst_block1};
+                icache_winst_o      <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
                 cnt                 <= 4'b0000;
                 pc_o                <= pc_o[17:0] + 17'h4;
             end
