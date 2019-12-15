@@ -1,7 +1,7 @@
 `include "defines.v"
 
 module stage_ex(
-    input wire          rst,
+    input wire                      rst,
 
     input wire[`AluOpBus]           aluop_i,
     input wire[`AluSelBus]          alusel_i,
@@ -10,14 +10,17 @@ module stage_ex(
     input wire[`RegAddrBus]         wd_i,
     input wire                      wreg_i,
 
-    input wire[`RegBus]             jb_link_addr_i, //todo
+    input wire[`RegBus]             jump_link_addr_i, 
+    input wire[`InstAddrBus]        ls_offset_i,
 
     output reg[`RegAddrBus]         wd_o,
     output reg                      wreg_o,
     output reg[`RegBus]             wdata_o,
 
     output reg[`AluOpBus]           aluop_o,
-    output reg[`AluSelBus]          alusel_o
+    output reg[`AluSelBus]          alusel_o,
+
+    output reg[`InstAddrBus]        ma_addr_o
 );
 
 reg[`RegBus]        logicout;
@@ -104,7 +107,6 @@ always @ (*) begin
         wd_o            <= wd_i;
         wreg_o          <= wreg_i;
     end
-
     case  (alusel_i)
         `EXE_RES_LOGIC: begin
             wdata_o <= logicout;
@@ -116,19 +118,22 @@ always @ (*) begin
             wdata_o <= shiftres;
         end
         `EXE_RES_JB: begin
-            wdata_o <= jb_link_addr_i;
+            if (aluop_i == `EXE_JAL_OP || aluop_i == `EXE_JALR_OP) begin
+                wdata_o <= jump_link_addr_i;
+            end
         end
         `EXE_RES_LOAD: begin
-            // todo
+            ma_addr_o   <= reg1_i + ls_offset_i;
         end
         `EXE_RES_STORE: begin
-            // todo
+            ma_addr_o   <= reg1_i + ls_offset_i;
+            wdata_o     <= reg2_i;
         end
         `EXE_RES_OTHER: begin
-            wdata_o <= reg1_i;
+            wdata_o     <= reg1_i;
         end
         default: begin
-            wdata_o <= `ZeroWord;
+            wdata_o     <= `ZeroWord;
         end
     endcase
 end

@@ -11,13 +11,20 @@ module stage_mem(
     input wire[`RegAddrBus]             wd_i,
     input wire                          wreg_i,
     input wire[`RegBus]                 wdata_i,
+    // cpu.v
+    input wire[`DataBus]                mem_mem_din_i,
 
-    input wire[`DataBus]                mem_din_i,
-
-
+    // to wb    
     output reg[`RegAddrBus]             wd_o,
     output reg                          wreg_o,
-    output reg[`RegBus]                 wdata_o
+    output reg[`RegBus]                 wdata_o,
+
+    // to ctrl
+    output reg                          mem_ctrl_req_o,
+    // cpu.v
+    output reg                          mem_mem_wr_o,
+    output reg[`InstAddrBus]            mem_mem_a_o,
+    output reg[`DataBus]                mem_mem_dout_o
 );
 
 always @ (*) begin

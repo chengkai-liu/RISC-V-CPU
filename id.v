@@ -2,6 +2,7 @@
 
 module stage_id(
     input wire                  rst,
+    input wire                  rdy,
 
     input wire[`InstAddrBus]    pc_i,
     input wire[`InstBus]        inst_i,
@@ -36,7 +37,7 @@ module stage_id(
 
 /*---------------------jump / branch------------------------*/
     // to ex
-    output reg[`InstAddrBus]    jb_link_addr_o,
+    output reg[`InstAddrBus]    jump_link_addr_i,
     // to pc_reg 
     output reg                  branch_flag_o,
     output reg[`InstAddrBus]    branch_addr_o,
@@ -68,7 +69,7 @@ always @ (*) begin
         reg1_addr_o         <= `NOPRegAddr;
         reg2_addr_o         <= `NOPRegAddr;
         imm                 <= `ZeroWord;
-        jb_link_addr_o      <= `ZeroWord;
+        jump_link_addr_i    <= `ZeroWord;
         branch_flag_o       <= `NoBranch;
         branch_addr_o       <= `ZeroWord;
         ls_offset_o         <= `ZeroWord;
@@ -83,7 +84,7 @@ always @ (*) begin
         reg1_addr_o         <= inst_i[19:15];
         reg2_addr_o         <= inst_i[24:20];
         imm                 <= `ZeroWord;
-        jb_link_addr_o      <= `ZeroWord;
+        jump_link_addr_i    <= `ZeroWord;
         branch_flag_o       <= `NoBranch;
         branch_addr_o       <= `ZeroWord;
         ls_offset_o         <= `ZeroWord;
@@ -113,7 +114,7 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadDisable;
                 reg2_read_o         <= `ReadDisable;
-                jb_link_addr_o      <= pc_i + 4; 
+                jump_link_addr_i    <= pc_i + 4; 
                 branch_flag_o       <= `Branch;
                 branch_addr_o       <= pc_i + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
             end // 7'b1101111
@@ -124,9 +125,9 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadEnable;
                 reg2_read_o         <= `ReadDisable;
-                jb_link_addr_o      <= pc_i + 4;
+                jump_link_addr_i    <= pc_i + 4;
                 branch_flag_o       <= `Branch;
-                branch_addr_o       <= reg1_o + {20'b0, inst_i[31:20]}; //todo unsure
+                branch_addr_o       <= reg1_o + {{20{inst_i[31]}}, inst_i[31:20]}; 
             end // 7'b1100111
             7'b1100011: begin
                 wreg_o              <= `WriteDisable;
@@ -351,16 +352,18 @@ end
 always @ (*) begin
     if (rst == `RstEnable) begin
         reg1_o <= `ZeroWord;
-    end else if ((reg1_read_o == 1'b1) && (ex_wreg_i == 1'b1) && (ex_wd_i == reg1_addr_o)) begin
-        reg1_o <= ex_wdata_i;
-    end else if ((reg1_read_o == 1'b1) && (mem_wreg_i == 1'b1) && (mem_wd_i == reg1_addr_o)) begin
-        reg1_o <= mem_wdata_i;
-    end else if (reg1_read_o == 1'b1) begin
-        reg1_o <= reg1_data_i;
-    end else if (reg1_read_o == 1'b0) begin
-        reg1_o <= imm;
-    end else begin
-        reg1_o <= `ZeroWord;
+    end else if (rdy == `IsReady) begin
+        if ((reg1_read_o == `ReadEnable) && (ex_wreg_i == `ReadEnable) && (ex_wd_i == reg1_addr_o)) begin
+            reg1_o <= ex_wdata_i;
+        end else if ((reg1_read_o == `ReadEnable) && (mem_wreg_i == `ReadEnable) && (mem_wd_i == reg1_addr_o)) begin
+            reg1_o <= mem_wdata_i;
+        end else if (reg1_read_o == `ReadEnable) begin
+            reg1_o <= reg1_data_i;
+        end else if (reg1_read_o == `ReadDisable) begin
+            reg1_o <= imm;
+        end else begin
+            reg1_o <= `ZeroWord;
+        end
     end
 end
 
@@ -368,16 +371,18 @@ end
 always @ (*) begin
     if (rst == `RstEnable) begin
         reg2_o <= `ZeroWord;
-    end else if ((reg2_read_o == 1'b1) && (ex_wreg_i == 1'b1) && (ex_wd_i == reg2_addr_o)) begin
-        reg2_o <= ex_wdata_i;
-    end else if ((reg2_read_o == 1'b1) && (mem_wreg_i == 1'b1) && (mem_wd_i == reg2_addr_o)) begin
-        reg2_o <= mem_wdata_i;
-    end else if (reg2_read_o == 1'b1) begin
-        reg2_o <= reg2_data_i;
-    end else if (reg2_read_o == 1'b0) begin
-        reg2_o <= imm;
-    end else begin
-        reg2_o <= `ZeroWord;
+    end else if (rdy == `IsReady) begin
+        if ((reg2_read_o == `ReadEnable) && (ex_wreg_i == `ReadEnable) && (ex_wd_i == reg2_addr_o)) begin
+            reg2_o <= ex_wdata_i;
+        end else if ((reg2_read_o == `ReadEnable) && (mem_wreg_i == `ReadEnable) && (mem_wd_i == reg2_addr_o)) begin
+            reg2_o <= mem_wdata_i;
+        end else if (reg2_read_o == `ReadEnable) begin
+            reg2_o <= reg2_data_i;
+        end else if (reg2_read_o == `ReadDisable) begin
+            reg2_o <= imm;
+        end else begin
+            reg2_o <= `ZeroWord;
+        end
     end
 end
 
