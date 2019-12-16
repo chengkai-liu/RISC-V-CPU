@@ -1,3 +1,15 @@
+`include "regfile.v"
+`include "if.v"
+`include "if_id.v"
+`include "id.v"
+`include "id_ex.v"
+`include "ex.v"
+`include "ex_mem.v"
+`include "mem.v"
+`include "mem_wb.v"
+`
+`include "ctrl.v"
+`include ""
 // RISCV32I CPU top module
 // port modification allowed for debugging purposes
 
@@ -27,20 +39,20 @@ module cpu(
 // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
-always @(posedge clk_in)
-  begin
-    if (rst_in)
-      begin
-      
-      end
-    else if (!rdy_in)
-      begin
-      
-      end
-    else
-      begin
-      
-      end
-  end
+stageif if0(
+
+);
+
+stageid id0(
+
+);
+
+stageex ex0(
+
+);
+
+stagemem mem0(
+
+);
 
 endmodule

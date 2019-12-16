@@ -1,4 +1,3 @@
-`include "defines.v"
 `include "pc_reg.v"
 `include "if_id.v"
 `include "id.v"

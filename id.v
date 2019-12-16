@@ -1,10 +1,10 @@
 `include "defines.v"
-
+// todo pc
 module stage_id(
     input wire                  rst,
     input wire                  rdy,
 
-    input wire[`InstAddrBus]    pc_i,
+    input wire[`InstAddrBus]    pc_i,       // pc + 4
     input wire[`InstBus]        inst_i,
 
     // from regfile
@@ -105,7 +105,7 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadDisable;
                 reg2_read_o         <= `ReadDisable;
-                imm                 <= {inst_i[31:12], 12'b0} + pc_i;
+                imm                 <= {inst_i[31:12], 12'b0} + pc_i - 4;
             end // 7'b0010111 AUIPC
             7'b1101111: begin
                 aluop_o             <= `EXE_JAL_OP;
@@ -114,9 +114,9 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadDisable;
                 reg2_read_o         <= `ReadDisable;
-                jump_link_addr_i    <= pc_i + 4; 
+                jump_link_addr_i    <= pc_i; 
                 branch_flag_o       <= `Branch;
-                branch_addr_o       <= pc_i + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
+                branch_addr_o       <= pc_i - 4 + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
             end // 7'b1101111
             7'b1100111: begin
                 aluop_o             <= `EXE_JALR_OP;
@@ -125,7 +125,7 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadEnable;
                 reg2_read_o         <= `ReadDisable;
-                jump_link_addr_i    <= pc_i + 4;
+                jump_link_addr_i    <= pc_i;
                 branch_flag_o       <= `Branch;
                 branch_addr_o       <= reg1_o + {{20{inst_i[31]}}, inst_i[31:20]}; 
             end // 7'b1100111
@@ -135,54 +135,65 @@ always @ (*) begin
                 reg1_read_o         <= `ReadEnable;
                 reg2_read_o         <= `ReadEnable;
                 instvalid           <= `InstValid;
-                branch_flag_o       <= `Branch;
                 case (funct3)
                     `BEQ_FUNCT3: begin
                         aluop_o             <= `EXE_BEQ_OP;
                         if (reg1_o == reg2_o) begin
-                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_flag_o       <= `Branch;
+                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o   <= pc_i + 4;
+                            branch_flag_o       <= `NoBranch;
+                            branch_addr_o   <= pc_i;
                         end
                     end
                     `BNE_FUNCT3: begin
                         aluop_o             <= `EXE_BNE_OP;
                         if (reg1_o != reg2_o) begin
-                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_flag_o       <= `Branch;
+                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o   <= pc_i + 4;
+                            branch_flag_o       <= `NoBranch;
+                            branch_addr_o   <= pc_i;
                         end
                     end
                     `BLT_FUNCT3: begin
                         aluop_o             <= `EXE_BLT_OP;
-                        if ($signed(reg1_o) < $signed(reg2_o)) begin
-                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                        if ($signed(reg1_o) < $signed(reg2_o)) begin   
+                            branch_flag_o       <= `Branch;
+                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o   <= pc_i + 4;
+                            branch_flag_o       <= `NoBranch;
+                            branch_addr_o   <= pc_i;
                         end
                     end
                     `BGE_FUNCT3: begin
                         aluop_o             <= `EXE_BGE_OP;
                         if (!($signed(reg1_o) < $signed(reg2_o))) begin
-                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_flag_o       <= `Branch;
+                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o   <= pc_i + 4;
+                            branch_flag_o       <= `NoBranch;
+                            branch_addr_o   <= pc_i;
                         end
                     end
                     `BLTU_FUNCT3: begin
                         aluop_o             <= `EXE_BLTU_OP;
                         if (reg1_o < reg2_o) begin
-                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_flag_o       <= `Branch;
+                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o   <= pc_i + 4;
+                            branch_flag_o       <= `NoBranch;
+                            branch_addr_o   <= pc_i;
                         end
                     end
                     `BGEU_FUNCT3: begin
                         aluop_o             <= `EXE_BGEU_OP;
                         if (!(reg1_o < reg2_o)) begin
-                            branch_addr_o   <= pc_i + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_flag_o       <= `Branch;
+                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
-                            branch_addr_o   <= pc_i + 4;
+                            branch_flag_o       <= `NoBranch;
+                            branch_addr_o   <= pc_i;
                         end
                     end
                     default: begin
