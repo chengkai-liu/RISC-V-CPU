@@ -6,10 +6,10 @@ module icache(
     input wire                      rdy,
 
     input wire                      we_i,
-    input wire[`InstAddrBus]        wpc_i,
+    input wire[`InstAddrBus]        waddr_i,
     input wire[`InstBus]            winst_i,
 
-    input wire[`InstAddrBus]        rpc_i,
+    input wire[`InstAddrBus]        raddr_i,
 
     output reg                      cache_hit_o,
     output reg[`InstBus]            cache_inst_o
@@ -25,15 +25,15 @@ reg[`InstBus]           cache_data[`BlockNum - 1:0];
 wire[`IndexBus]         rindex_i;
 wire[`TagBus]           rtag_i;
 
-assign rindex_i         = rpc_i[`BlockNumLog2 - 1:0];
-assign rtag_i           = rpc_i[17:`BlockNumLog2];
+assign rindex_i         = raddr_i[`BlockNumLog2 - 1:0];
+assign rtag_i           = raddr_i[17:`BlockNumLog2];
 
 //
 wire[`IndexBus]         windex_i;
 wire[`TagBus]           wtag_i;
 
-assign windex_i         = wpc_i[`BlockNumLog2 - 1:0];
-assign wtag_i           = wpc_i[17:`BlockNumLog2];
+assign windex_i         = waddr_i[`BlockNumLog2 - 1:0];
+assign wtag_i           = waddr_i[17:`BlockNumLog2];
 
 //
 wire                    r_valid;
@@ -53,7 +53,7 @@ always @ (posedge clk) begin
         end
     end else if (we_i) begin
         valid_bit[windex_i]         <= `Valid;
-        cache_tag[windex_i]         <= wpc_i[17:`BlockNumLog2];
+        cache_tag[windex_i]         <= waddr_i[17:`BlockNumLog2];
         cache_data[windex_i]        <= winst_i;
     end
 end

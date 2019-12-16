@@ -37,7 +37,7 @@ module stage_id(
 
 /*---------------------jump / branch------------------------*/
     // to ex
-    output reg[`InstAddrBus]    jump_link_addr_i,
+    output reg[`InstAddrBus]    jump_link_addr_o,
     // to pc_reg 
     output reg                  branch_flag_o,
     output reg[`InstAddrBus]    branch_addr_o,
@@ -69,7 +69,7 @@ always @ (*) begin
         reg1_addr_o         <= `NOPRegAddr;
         reg2_addr_o         <= `NOPRegAddr;
         imm                 <= `ZeroWord;
-        jump_link_addr_i    <= `ZeroWord;
+        jump_link_addr_o    <= `ZeroWord;
         branch_flag_o       <= `NoBranch;
         branch_addr_o       <= `ZeroWord;
         ls_offset_o         <= `ZeroWord;
@@ -84,7 +84,7 @@ always @ (*) begin
         reg1_addr_o         <= inst_i[19:15];
         reg2_addr_o         <= inst_i[24:20];
         imm                 <= `ZeroWord;
-        jump_link_addr_i    <= `ZeroWord;
+        jump_link_addr_o    <= `ZeroWord;
         branch_flag_o       <= `NoBranch;
         branch_addr_o       <= `ZeroWord;
         ls_offset_o         <= `ZeroWord;
@@ -114,7 +114,7 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadDisable;
                 reg2_read_o         <= `ReadDisable;
-                jump_link_addr_i    <= pc_i; 
+                jump_link_addr_o    <= pc_i; 
                 branch_flag_o       <= `Branch;
                 branch_addr_o       <= pc_i - 4 + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
             end // 7'b1101111
@@ -125,7 +125,7 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 reg1_read_o         <= `ReadEnable;
                 reg2_read_o         <= `ReadDisable;
-                jump_link_addr_i    <= pc_i;
+                jump_link_addr_o    <= pc_i;
                 branch_flag_o       <= `Branch;
                 branch_addr_o       <= reg1_o + {{20{inst_i[31]}}, inst_i[31:20]}; 
             end // 7'b1100111
