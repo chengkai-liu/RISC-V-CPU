@@ -20,7 +20,7 @@ module stage_if(
 
 /*---------------------------------------------------------*/
 
-    output reg[`InstAddrBus]        pc_o,
+    output reg[`InstAddrBus]        pc_o,   // pc + 4
     output reg[`InstBus]            inst_o,
 
     // cpu output
