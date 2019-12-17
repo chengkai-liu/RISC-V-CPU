@@ -74,8 +74,43 @@ wire[`RegAddrBus]       reg2_addr;
 
 // ID --> ID_EX
 wire[`AluOpBus]         id_aluop_o;
-wire[`AluSelBus]        id_alusel_o;
+wire[`AluSelBus]        id_alusel_o_o;
+wire[`InstAddrBus]      id_jump_link_addr_o;
+wire[`RegBus]           id_ls_offset_o;  
 
+// ID_EX --> EX
+wire[`AluOpBus]         ex_aluop_i;
+wire[`AluSelBus]        ex_alusel_i;
+wire[`RegBus]           ex_reg1_i;
+wire[`RegBus]           ex_reg2_i;
+wire                    ex_wreg_i;
+wire[`RegAddrBus]       ex_wd_i;
+wire[`RegBus]           ex_jump_link_addr_i;
+wire[`InstAddrBus]      ex_ls_offset_i;
+
+// EX --> EX_MEM
+wire[`RegAddrBus]       ex_wd_o;
+wire                    ex_wreg_o;
+wire[`RegBus]           ex_wdata_o;
+wire[`AluOpBus]         ex_aluop_o;
+wire[`AluSelBus]        ex_alusel_o;
+wire[`InstAddrBus]      ex_ma_addr_o;
+
+// EX_MEM --> MEM
+wire[`RegAddrBus]       mem_wd_i;
+wire                    mem_wreg_i;
+wire[`RegBus]           mem_wdata_i;
+wire[`AluOpBus]         mem_aluop_i;
+wire[`AluSelBus]        mem_alusel_i;
+wire[`InstAddrBus]      mem_ma_addr_i;
+
+// MEM --> MEM_WB
+wire[`RegAddrBus]       mem_wd_o;
+wire                    mem_wreg_o;
+wire[`RegBus]           mem_wdata_o;
+
+// MEM --> cpu.v todo
+wire                    mem_mem_wr_o;
 
 // MEM_WB --> WB(regfile)
 wire                    wb_wreg_i;
@@ -93,7 +128,7 @@ regfile regfile0(
     .rdata1(reg1_data),         .rdata2(reg2_data)
 );
 
-stageif if0(
+stage_if if0(
     // input
     .clk(clk_in),       .rst(rst_in),
     .stall(stall),
@@ -119,7 +154,7 @@ if_id if_id0(
     .id_pc(id_pc_i),    .id_inst(id_inst_i)
 );
 
-stageid id0(
+stage_id id0(
     // input
     .rst(rst_in),               .rdy(rdy_in),
     .pc_i(id_pc_i),             .inst_i(id_inst_i),
@@ -134,10 +169,12 @@ stageid id0(
     .aluop_o(id_aluop_o),       .alusel_o(id_alusel_o),
 
     .reg1_o(id_reg1_o),         .reg2_o(id_reg2_o),
-    .wreg_o(id_wreg_o),         .wd_o(id_wd_o)
+    .wreg_o(id_wreg_o),         .wd_o(id_wd_o),
 
-    // todo
-    .jump_link_addr_o()
+    .jump_link_addr_o(id_jump_link_addr_o),
+    .branch_flag_o(branch_flag),    .branch_addr_o(branch_addr),
+    .ls_offset_o(id_ls_offset_o)
+
 );
 
 // todo
@@ -148,15 +185,58 @@ id_ex id_ex0(
     .id_aluop(id_aluop_o),          .id_alusel(id_alusel_o),
     .id_reg1(id_reg1_o),            .id_reg2(id_reg2_o),
     .id_wreg(id_wreg_o),            .id_wd(id_wd_o),
+    .id_jump_link_addr(id_jump_link_addr_o),
+    .id_ls_offset(id_ls_offset_o),
     // output
+    .ex_aluop(ex_aluop_i),          .ex_alusel(ex_alusel_i),
+    .ex_reg1(ex_reg1_i),            .ex_reg2(ex_reg2_i),
+    .ex_wreg(ex_wreg_i),            .ex_wd(ex_wd_i),
+    .ex_jump_link_addr(ex_jump_link_addr_i),
+    .ex_ls_offset(ex_ls_offset_i)
 );
 
-stageex ex0(
-
+stage_ex ex0(
+    // input
+    .rst(rst),
+    .aluop_i(ex_aluop_i),           .alusel_i(ex_alusel_i),
+    .reg1_i(ex_reg1_i),             .reg2_i(ex_reg2_i),
+    .wd_i(ex_wd_i),                 .wreg_i(ex_wreg_i),
+    
+    .jump_link_addr_i(ex_jump_link_addr_i),
+    .ls_offset_i(ex_ls_offset_i),
+    // output
+    .wd_o(ex_wd_o),                 .wreg_o(ex_wreg_o),         .wdata_o(ex_wdata_o),
+    .aluop_o(ex_aluop_o),           .alusel_o(ex_alusel_o),
+    .ma_addr_o(ex_ma_addr_o)
 );
 
-stagemem mem0(
+ex_mem ex_mem0(
+    // input
+    .clk(clk_in),                   .rst(rst_in),
+    .stall(stall),
+    .ex_wd(ex_wd_o),                .ex_wreg(ex_wreg_o),        .ex_wdata(ex_wdata_o),
+    .aluop_i(ex_aluop_o),           .alusel_i(ex_alusel_o),
+    .ex_ma_addr(ex_ma_addr_o),
+    //output
+    .mem_wd(mem_wd_i),              .mem_wreg(mem_wreg_i),      .mem_wdata(mem_wdata_i),
+    .aluop_o(mem_aluop_i),          .alusel_o(mem_alusel_i),
+    .mem_ma_addr(mem_ma_addr_i)
+);
 
+stage_mem mem0(
+    // input
+    .clk(clk_in),                   .rst(rst_in),
+    .aluop_i(mem_aluop_i),          .alusel_i(mem_alusel_i),
+    .wd_i(mem_wd_i),                .wreg_i(mem_wreg_i),        .wdata_i(mem_wdata_i),
+    .ma_addr_i(mem_ma_addr_i),      .mem_mem_din_i(mem_din),
+    // output
+    .wd_o(mem_wd_o),                .wreg_o(mem_wreg_o),        .wdata_o(mem_wdata_o),
+    .mem_ctrl_req_o(mem_ctrl_req),
+    // todo
+);
+
+mem_wb mem_wb0(
+    
 );
 
 endmodule
