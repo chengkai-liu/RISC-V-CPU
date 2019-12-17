@@ -11,8 +11,8 @@ module icache(
 
     input wire[`InstAddrBus]        raddr_i,
 
-    output reg                      cache_hit_o,
-    output reg[`InstBus]            cache_inst_o
+    output reg                      icache_hit_o,
+    output reg[`InstBus]            icache_inst_o
 );
 
 // 4*BlockNum Byte Direct Mapped Cache
@@ -61,18 +61,18 @@ end
 //
 always @ (*) begin
     if (rst == `RstEnable || rdy == `NotReady) begin
-        cache_hit_o                 <= `Miss;
-        cache_inst_o                <= `ZeroWord;
+        icache_hit_o                <= `Miss;
+        icache_inst_o               <= `ZeroWord;
     end else begin
         if ((rindex_i == windex_i) && we_i == `True_v) begin
-            cache_hit_o             <= `Hit;
-            cache_inst_o            <= winst_i;
+            icache_hit_o            <= `Hit;
+            icache_inst_o           <= winst_i;
         end else if ((rtag_i == r_cache_tag) && r_valid == `Valid) begin
-            cache_hit_o             <= `Hit;
-            cache_inst_o            <= r_cache_inst;
+            icache_hit_o            <= `Hit;
+            icache_inst_o           <= r_cache_inst;
         end else begin
-            cache_hit_o             <= `Miss;
-            cache_inst_o            <= `ZeroWord;
+            icache_hit_o            <= `Miss;
+            icache_inst_o           <= `ZeroWord;
         end
     end
 end
