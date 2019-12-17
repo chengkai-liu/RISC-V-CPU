@@ -38,13 +38,20 @@ module cpu(
 // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
+// regfile
+wire[`RegBus]           reg1_data;
+wire[`RegBus]           reg2_data;
+
 // ctrl
 wire[`StallBus]         stall;
 wire                    if_ctrl_req;
 wire                    mem_ctrl_req;
 
-wire[`InstAddrBus]      if_mem_addr;
-wire[`InstAddrBus]      mem_mem_addr;
+wire[`InstAddrBus]      if_mem_a;
+wire                    mem_mem_wr;
+wire[`InstAddrBus]      mem_mem_a;
+wire[`DataBus]          mem_mem_dout;
+
 
 // branch
 wire                    branch_flag;
@@ -77,9 +84,14 @@ wire[`RegAddrBus]       reg2_addr;
 
 // ID --> ID_EX
 wire[`AluOpBus]         id_aluop_o;
-wire[`AluSelBus]        id_alusel_o_o;
+wire[`AluSelBus]        id_alusel_o;
+wire[`RegBus]           id_reg1_o;
+wire[`RegBus]           id_reg2_o;
+wire                    id_wreg_o;
+wire[`RegAddrBus]       id_wd_o;
 wire[`InstAddrBus]      id_jump_link_addr_o;
 wire[`RegBus]           id_ls_offset_o;  
+
 
 // ID_EX --> EX
 wire[`AluOpBus]         ex_aluop_i;
@@ -112,8 +124,6 @@ wire[`RegAddrBus]       mem_wd_o;
 wire                    mem_wreg_o;
 wire[`RegBus]           mem_wdata_o;
 
-// MEM --> cpu.v todo
-wire                    mem_mem_wr_o;
 
 // MEM_WB --> WB(regfile)
 wire                    wb_wreg_i;
@@ -123,7 +133,7 @@ wire[`RegBus]           wb_wdata_i;
 regfile regfile0(
     // input
     .clk(clk_in),       .rst(rst_in),       .rdy(rdy_in),
-    .we(wb_wd_i),       .waddr(wb_wreg_i),  .wdata(wb_wdata_i),
+    .we(wb_wreg_i),     .waddr(wb_wd_i),    .wdata(wb_wdata_i),
     .re1(reg1_read),    .raddr1(reg1_addr),
     .re2(reg2_read),    .raddr2(reg2_addr),
 
@@ -141,7 +151,7 @@ stage_if if0(
 
     // output
     .pc_o(if_pc_o),                 .inst_o(if_inst_o),
-    .if_mem_a_o(if_mem_addr),          
+    .if_mem_a_o(if_mem_a),          
     .if_ctrl_req_o(if_ctrl_req),
     .icache_we_o(icache_we),        .icache_waddr_o(icache_waddr),      .icache_winst_o(icache_winst), 
     .icache_raddr_o(icache_raddr)
@@ -162,9 +172,9 @@ stage_id id0(
     .rst(rst_in),               .rdy(rdy_in),
     .pc_i(id_pc_i),             .inst_i(id_inst_i),
     .reg1_data_i(reg1_data),    .reg2_data_i(reg2_data),
-    // todo
-    .ex_wreg_i(),               .ex_wdata_i(),          .ex_wd_i(),
-    .mem_wreg_i(),              .mem_wdata_i(),         .mem_wd_i(),
+    
+    .ex_wreg_i(ex_wreg_o),      .ex_wdata_i(ex_wdata_o),            .ex_wd_i(ex_wd_o),
+    .mem_wreg_i(mem_wreg_o),    .mem_wdata_i(mem_wdata_o),          .mem_wd_i(mem_wd_o),
     // output
     .reg1_read_o(reg1_read),    .reg2_read_o(reg2_read),
     .reg1_addr_o(reg1_addr),    .reg2_addr_o(reg2_addr),
@@ -180,7 +190,6 @@ stage_id id0(
 
 );
 
-// todo
 id_ex id_ex0(
     // input
     .clk(clk_in),                   .rst(rst_in),
@@ -235,7 +244,7 @@ stage_mem mem0(
     // output
     .wd_o(mem_wd_o),                .wreg_o(mem_wreg_o),        .wdata_o(mem_wdata_o),
     .mem_ctrl_req_o(mem_ctrl_req),
-    // todo
+    .mem_mem_wr_o(mem_mem_wr),      .mem_mem_a_o(mem_mem_a),    .mem_mem_dout_o(mem_mem_dout)
 );
 
 mem_wb mem_wb0(
@@ -251,9 +260,8 @@ ctrl ctrl0(
     // input
     .rst(rst_in),                   .rdy(rdy_in),
     .if_ctrl_req_i(if_ctrl_req),    .mem_ctrl_req_i(mem_ctrl_req),
-    .if_mem_a_i(if_mem_addr),       .mem_mem_a_i(mem_mem_addr),
-    // todo
-    .mem_mem_wr_i(),                .mem_mem_dout_i(),
+    .if_mem_a_i(if_mem_a),          .mem_mem_a_i(mem_mem_a),
+    .mem_mem_wr_i(mem_mem_wr),      .mem_mem_dout_i(mem_mem_dout),
     // output
     .stall(stall),
     .mem_wr_o(mem_wr),              .mem_a_o(mem_a),            .mem_dout_o(mem_dout)
