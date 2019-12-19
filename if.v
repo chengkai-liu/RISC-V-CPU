@@ -57,7 +57,7 @@ always @ (posedge clk) begin
         icache_waddr_o  <= `ZeroWord;
         icache_winst_o  <= `ZeroWord;
         icache_raddr_o  <= `ZeroWord;
-    end else if (stall[1] == `NoStop && branch_flag_i == `Branch) begin
+    end else if (branch_flag_i == `Branch) begin // todo maybe wrong
         cnt             <= 4'b0000;
         pc_o            <= branch_addr_i;
         inst_o          <= `ZeroWord;
@@ -87,7 +87,7 @@ always @ (posedge clk) begin
                     if (stall[0] == `Stop) begin
                         cnt                 <= 4'b1000;
                     end else begin
-                        if_mem_a_o          <= pc_o + 4;
+                        if_mem_a_o          <= pc_o + 1;
                         cnt                 <= 4'b0010;
                     end
                 end
@@ -119,6 +119,7 @@ always @ (posedge clk) begin
                 icache_we_o         <= `WriteEnable;
                 icache_waddr_o      <= icache_raddr_o;
                 icache_winst_o      <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
+                if_ctrl_req_o       <= `NoStop;
                 pc_o                <= pc_o + 4;
                 cnt                 <= 4'b0000;
             end

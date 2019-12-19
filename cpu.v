@@ -159,7 +159,7 @@ stage_if if0(
 
 if_id if_id0(
     // input
-    .clk(lck_in),       .rst(rst_in),
+    .clk(clk_in),       .rst(rst_in),
     .stall(stall),
     .if_pc(if_pc_o),    .if_inst(if_inst_o),
 
