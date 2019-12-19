@@ -29,7 +29,7 @@ module stage_mem(
     output reg[`DataBus]                mem_mem_dout_o
 );
 
-reg[3:0]            cnt;
+reg[2:0]            cnt;
 reg[`DataBus]       data_block1;
 reg[`DataBus]       data_block2;
 reg[`DataBus]       data_block3;
@@ -53,7 +53,7 @@ always @ (posedge clk) begin
         mem_mem_wr_o        <= `WriteDisable;
         mem_mem_a_o         <= `ZeroWord;
         mem_mem_dout_o      <= `Zero8;
-        cnt                 <= 4'b0000;
+        cnt                 <= `Mem0;
         data_block1         <= `Zero8;
         data_block2         <= `Zero8;
         data_block3         <= `Zero8;
@@ -63,137 +63,137 @@ always @ (posedge clk) begin
         mem_access          <= `True_v;
     end else if (mem_ctrl_req_o == `Stop) begin
         case (cnt)
-            4'b0000: begin
+            `Mem0: begin
                 mem_access      <= `True_v;
                 case (alusel_i)
                     `EXE_RES_LOAD: begin
                         mem_mem_wr_o        <= `WriteDisable;
                         mem_mem_a_o         <= ma_addr_i;
-                        cnt                 <= 4'b0001;
+                        cnt                 <= `Mem1;
                     end
                     `EXE_RES_STORE: begin
                         mem_mem_wr_o        <= `WriteEnable;
                         mem_mem_a_o         <= ma_addr_i;
                         mem_mem_dout_o      <= wdata_i[7:0];
-                        cnt                 <= 4'b0001;
+                        cnt                 <= `Mem1;
                     end
                     default: begin
                     end
                 endcase
             end
-            4'b0001: begin
+            `Mem1: begin
                 case (aluop_i)
                     `EXE_LB_OP, `EXE_LBU_OP: begin
-                        cnt                 <= 4'b0010;
+                        cnt                 <= `Mem2;
                     end
                     `EXE_LH_OP, `EXE_LHU_OP, `EXE_LW_OP: begin
                         mem_mem_a_o         <= ma_addr_i + 1;
-                        cnt                 <= 4'b0010;
+                        cnt                 <= `Mem2;
                     end
                     `EXE_SB_OP: begin
                         mem_mem_wr_o        <= `WriteDisable;
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // SB 2CC
+                        cnt                 <= `Mem0; // SB--2CC
                     end
                     `EXE_SH_OP, `EXE_SW_OP: begin
                         mem_mem_a_o         <= ma_addr_i + 1;
                         mem_mem_dout_o      <= wdata_i[15:8];
-                        cnt                 <= 4'b0010;
+                        cnt                 <= `Mem2;
                     end
                     default: begin
                     end 
                 endcase
             end
-            4'b0010: begin
+            `Mem2: begin
                 case (aluop_i)
                     `EXE_LB_OP: begin
                         load_data           <= {{24{mem_mem_din_i[7]}}, mem_mem_din_i};
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // LB 3CC
+                        cnt                 <= `Mem0; // LB--3CC
                     end
                     `EXE_LBU_OP: begin
                         load_data           <= {24'b0, mem_mem_din_i};
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // LBU 3CC
+                        cnt                 <= `Mem0; // LBU--3CC
                     end
                     `EXE_LH_OP, `EXE_LHU_OP: begin
                         data_block1         <= mem_mem_din_i;
-                        cnt                 <= 4'b0011;
+                        cnt                 <= `Mem3;
                     end
                     `EXE_LW_OP: begin
                         data_block1         <= mem_mem_din_i;
                         mem_mem_a_o         <= ma_addr_i + 2;
-                        cnt                 <= 4'b0011;
+                        cnt                 <= `Mem3;
                     end
                     `EXE_SH_OP: begin
                         mem_mem_wr_o        <= `WriteDisable;
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // SH 3CC
+                        cnt                 <= `Mem0; // SH--3CC
                     end
                     `EXE_SW_OP: begin
                         mem_mem_a_o         <= ma_addr_i + 2;
                         mem_mem_dout_o      <= wdata_i[23:16];
-                        cnt                 <= 4'b0011;
+                        cnt                 <= `Mem3;
                     end
                     default: begin
                     end
                 endcase
             end
-            4'b0011: begin
+            `Mem3: begin
                 case (aluop_i)
                     `EXE_LH_OP: begin
                         load_data           <= {{16{mem_mem_din_i[7]}}, mem_mem_din_i, data_block1};
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // LH 4CC
+                        cnt                 <= `Mem0; // LH--4CC
                     end
                     `EXE_LHU_OP: begin
                         load_data           <= {16'b0, mem_mem_din_i, data_block1};
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // LHU 4CC
+                        cnt                 <= `Mem0; // LHU--4CC
                     end
                     `EXE_LW_OP: begin
                         data_block2         <= mem_mem_din_i;
                         mem_mem_a_o         <= ma_addr_i + 3;
-                        cnt                 <= 4'b0100;
+                        cnt                 <= `Mem4;
                     end
                     `EXE_SW_OP: begin
                         mem_mem_a_o         <= ma_addr_i + 3;
                         mem_mem_dout_o      <= wdata_i[31:24];
-                        cnt                 <= 4'b0100;
+                        cnt                 <= `Mem4;
                     end
                     default: begin
                     end
                 endcase
             end
-            4'b0100: begin
+            `Mem4: begin
                 case (aluop_i)
                     `EXE_LW_OP: begin
                         data_block3         <= mem_mem_din_i;
-                        cnt                 <= 4'b0101;
+                        cnt                 <= `Mem5;
                     end
                     `EXE_SW_OP: begin
                         mem_mem_wr_o        <= `WriteDisable;
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // SW 5CC
+                        cnt                 <= `Mem0; // SW--5CC
                     end
                     default: begin
                     end
                 endcase
             end
-            4'b0101: begin
+            `Mem5: begin
                 case (aluop_i)
                     `EXE_LW_OP: begin
                         load_data           <= {mem_mem_din_i, data_block3, data_block2, data_block1};
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
-                        cnt                 <= 4'b0000; // LW 6CC
+                        cnt                 <= `Mem0; // LW--6CC
                     end
                 endcase
             end

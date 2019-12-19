@@ -44,7 +44,7 @@ reg[`DataBus]   inst_block3;
 
 always @ (posedge clk) begin
     if (rst == `RstEnable) begin
-        cnt             <= 4'b0000;
+        cnt             <= `If0;
         inst_block1     <= `Zero8;
         inst_block2     <= `Zero8;
         inst_block3     <= `Zero8;
@@ -58,7 +58,7 @@ always @ (posedge clk) begin
         icache_winst_o  <= `ZeroWord;
         icache_raddr_o  <= `ZeroWord;
     end else if (branch_flag_i == `Branch) begin // todo maybe wrong
-        cnt             <= 4'b0000;
+        cnt             <= `If0;
         pc_o            <= branch_addr_i;
         inst_o          <= `ZeroWord;
         if_mem_a_o      <= `ZeroWord;
@@ -66,95 +66,95 @@ always @ (posedge clk) begin
         icache_raddr_o  <= branch_addr_i;
     end else begin
         case (cnt)
-            4'b0000: begin
+            `If0: begin
                 icache_we_o         <= `WriteDisable;
                 if (stall[1] == `NoStop && stall[2] == `NoStop) begin
                     if_ctrl_req_o           <= `Stop;
                     if_mem_a_o              <= pc_o;
                     icache_raddr_o          <= pc_o;
-                    cnt                     <= 4'b0001;
+                    cnt                     <= `If1;
                 end
             end
-            4'b0001: begin
+            `If1: begin
                 if (icache_hit_i == `Hit) begin
                     if (stall[0] == `NoStop) begin
                         inst_o              <= icache_inst_i;
                         if_ctrl_req_o       <= `NoStop;
                         pc_o                <= pc_o + 4;
-                        cnt                 <= 4'b0000;
+                        cnt                 <= `If0; // fetched
                     end
                 end else begin
                     if (stall[0] == `Stop) begin
-                        cnt                 <= 4'b1000;
+                        cnt                 <= `ReIf00;
                     end else begin
                         if_mem_a_o          <= pc_o + 1;
-                        cnt                 <= 4'b0010;
+                        cnt                 <= `If2;
                     end
                 end
             end
-            4'b0010: begin
+            `If2: begin
                 if_mem_a_o              <= pc_o + 2;
                 inst_block1             <= if_mem_din_i;
-                cnt                     <= 4'b0011;
+                cnt                     <= `If3;
             end
-            4'b0011: begin
+            `If3: begin
                 if (stall[0] == `Stop) begin
-                    cnt                 <= 4'b1010;
+                    cnt                 <= `ReIf11;
                 end else begin
                     if_mem_a_o          <= pc_o + 3;
                     inst_block2         <= if_mem_din_i;
-                    cnt                 <= 4'b0100;
+                    cnt                 <= `If4;
                 end
             end
-            4'b0100: begin
+            `If4: begin
                 if (stall[0] == `Stop) begin
-                    cnt                 <= 4'b1100;
+                    cnt                 <= `ReIf22;
                 end else begin
                     inst_block3         <= if_mem_din_i;
-                    cnt                 <= 4'b0101;
+                    cnt                 <= `If5;
                 end
             end
-            4'b0101: begin
+            `If5: begin
                 inst_o              <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
                 icache_we_o         <= `WriteEnable;
                 icache_waddr_o      <= icache_raddr_o;
                 icache_winst_o      <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
                 if_ctrl_req_o       <= `NoStop;
                 pc_o                <= pc_o + 4;
-                cnt                 <= 4'b0000;
+                cnt                 <= `If0;
             end
 /*-----------------------------------------------------------------------------*/
-            4'b1000: begin
+            `ReIf00: begin
                 if (stall[0] == `NoStop) begin
                     if_mem_a_o      <= pc_o;
-                    cnt             <= 4'b1001;
+                    cnt             <= `ReIf01;
                 end
             end
-            4'b1001: begin
+            `ReIf01: begin
                 if_mem_a_o          <= pc_o + 1;
-                cnt                 <= 4'b0010;
+                cnt                 <= `If2;
             end
-            //
-            4'b1010: begin
+            //-----------------------------------
+            `ReIf11: begin
                 if (stall[0] == `NoStop) begin
                     if_mem_a_o      <= pc_o + 1;
-                    cnt             <= 4'b1011;
+                    cnt             <= `ReIf12;
                 end
             end
-            4'b1011: begin
+            `ReIf12: begin
                 if_mem_a_o          <= pc_o + 2;
-                cnt                 <= 4'b0011;
+                cnt                 <= `If3;
             end
-            //
-            4'b1100: begin
+            //-----------------------------------
+            `ReIf22: begin
                 if (stall[0] == `NoStop) begin
                     if_mem_a_o      <= pc_o + 2;
-                    cnt             <= 4'b1101;
+                    cnt             <= `ReIf23;
                 end
             end
-            4'b1101: begin
+            `ReIf23: begin
                 if_mem_a_o          <= pc_o + 3;
-                cnt                 <= 4'b0100;
+                cnt                 <= `If4;
             end
         
             default: begin

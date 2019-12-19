@@ -27,7 +27,7 @@ reg[`RegBus]        logicout;
 reg[`RegBus]        cmpres;
 reg[`RegBus]        shiftres;
 
-//---------------1-----------------
+//---------------1-----------------------------------------------------------------
 always @ (*) begin
     if (rst == `RstEnable) begin
         logicout <= `ZeroWord;
@@ -54,6 +54,7 @@ always @ (*) begin
         endcase
     end
 end // logic
+// ---------------------------------// ---------------------------------
 
 always @ (*) begin
     if (rst == `RstEnable) begin
@@ -72,6 +73,7 @@ always @ (*) begin
         endcase
     end
 end // cmp
+// ---------------------------------// ---------------------------------
 
 always @ (*) begin
     if (rst == `RstEnable) begin
@@ -93,14 +95,16 @@ always @ (*) begin
         endcase
     end
 end // shift
+// ---------------------------------// ---------------------------------
 
-//---------------2-----------------
+//---------------2-----------------------------------------------------------------
 always @ (*) begin
-    if (rst) begin
+    if (rst == `RstEnable) begin
         aluop_o         <= `EXE_NOP_OP;
         alusel_o        <= `EXE_RES_NOP;
         wd_o            <= `ZeroWord;
         wreg_o          <= `WriteDisable;
+        wdata_o         <= `ZeroWord;
     end else begin
         aluop_o         <= aluop_i;
         alusel_o        <= alusel_i;

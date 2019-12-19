@@ -120,6 +120,7 @@
 `define IndexBus        `BlockNumLog2 - 1:0
 
 
+
 `define InstMemNum      131071
 `define InstMemNumLog2  17
 
@@ -132,3 +133,27 @@
 `define RegNum          32
 `define RegNumLog2      5
 `define NOPRegAddr      5'b00000
+
+
+// if cnt
+`define If0             4'b0000
+`define If1             4'b0001
+`define If2             4'b0010
+`define If3             4'b0011
+`define If4             4'b0100
+`define If5             4'b0101
+`define ReIf00          4'b0100
+`define ReIf01          4'b1001
+`define ReIf11          4'b1010
+`define ReIf12          4'b1011
+`define ReIf22          4'b1100
+`define ReIf23          4'b1101
+
+
+// mem cnt
+`define Mem0            3'b000
+`define Mem1            3'b001
+`define Mem2            3'b010
+`define Mem3            3'b011
+`define Mem4            3'b100
+`define Mem5            3'b101
