@@ -142,7 +142,7 @@
 `define If3             4'b0011
 `define If4             4'b0100
 `define If5             4'b0101
-`define ReIf00          4'b0100
+`define ReIf00          4'b1000
 `define ReIf01          4'b1001
 `define ReIf11          4'b1010
 `define ReIf12          4'b1011
