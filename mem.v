@@ -121,6 +121,10 @@ always @ (posedge clk) begin
                     end
                     `EXE_LH_OP, `EXE_LHU_OP: begin
                         data_block1         <= mem_mem_din_i;
+                        cnt                 <= 4'b0011;
+                    end
+                    `EXE_LW_OP: begin
+                        data_block1         <= mem_mem_din_i;
                         mem_mem_a_o         <= ma_addr_i + 2;
                         cnt                 <= 4'b0011;
                     end
