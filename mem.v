@@ -29,7 +29,7 @@ module stage_mem(
     output reg[`DataBus]                mem_mem_dout_o
 );
 
-reg                 cnt;
+reg[3:0]            cnt;
 reg[`DataBus]       data_block1;
 reg[`DataBus]       data_block2;
 reg[`DataBus]       data_block3;
