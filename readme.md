@@ -9,7 +9,7 @@
 | basicopt1      |             |
 | builgarian     |             |
 | expr           |             |
-| gcd            |             |
+| gcd            | P           |
 | hanoi          |             |
 | io             |             |
 | lvalue2        | P           |
