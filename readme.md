@@ -2,23 +2,23 @@
 
 ## Testcase
 
-| Testcase       | Correctness |
-| -------------- | ----------- |
-| array_test1    |             |
-| array_test2    |             |
-| basicopt1      |             |
-| bulgarian      |             |
-| expr           | P           |
-| gcd            | P           |
-| hanoi          |             |
-| lvalue2        | P           |
-| magic          |             |
-| manyarguments  | P           |
-| multiarray     | P           |
-| pi             | U           |
-| qsort          |             |
-| queens         | F           |
-| statement_test |             |
-| superloop      |             |
-| tak            |             |
-| testsleep      |             |
+| Testcase       | Correctness  |
+| -------------- | ------------ |
+| array_test1    | IN           |
+| array_test2    | IN           |
+| basicopt1      | P            |
+| bulgarian      | FAIL step275 |
+| expr           | P            |
+| gcd            | P            |
+| hanoi          | IN           |
+| lvalue2        | P            |
+| magic          | FAIL 只输出0 |
+| manyarguments  | P            |
+| multiarray     | P            |
+| pi             | Probably     |
+| qsort          | 只有奇数     |
+| queens         | FAIL         |
+| statement_test |              |
+| superloop      | IN           |
+| tak            |              |
+| testsleep      |              |
