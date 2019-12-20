@@ -1,3 +1,5 @@
+// `define PREDICT
+
 // bool
 `define RstEnable       1'b1
 `define RstDisable      1'b0
@@ -19,6 +21,8 @@
 `define NotReady        1'b0
 `define Hit             1'b1
 `define Miss            1'b0
+`define Taken           1'b1
+`define NotTaken        1'b0
 
 `define ZeroWord        32'h00000000
 `define Zero8           8'h00;
@@ -125,7 +129,10 @@
 `define InstMemNumLog2  17
 
 `define BlockNum        128
-`define BlockNumLog2    7       
+`define BlockNumLog2    7    
+
+`define BhtNum          4096
+`define BtbNum          64
 
 `define RegWidth        32
 `define DoubleRegWidth  64

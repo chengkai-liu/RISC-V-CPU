@@ -37,18 +37,24 @@ module stage_if(
     output reg[`InstAddrBus]        icache_raddr_o
 );
 
-reg[3:0]        cnt;
-reg[`DataBus]   inst_block1;
-reg[`DataBus]   inst_block2;
-reg[`DataBus]   inst_block3;
+reg[3:0]                    cnt;
+reg[`DataBus]               inst_block1;
+reg[`DataBus]               inst_block2;
+reg[`DataBus]               inst_block3;
 
+`ifdef PREDICT
+reg[1:0]                    bht[`BhtNum - 1:0];        // 2 bit Branch history table, taken/not taken
+reg[`InstAddrBus]           btb[`BtbNum - 1:0];        // Branch Target Buffer
+`endif
+
+integer i;
 always @ (posedge clk) begin
     if (rst == `RstEnable) begin
         cnt             <= `If0;
         inst_block1     <= `Zero8;
         inst_block2     <= `Zero8;
         inst_block3     <= `Zero8;
-        //
+        //----------------------------
         pc_o            <= `ZeroWord;
         inst_o          <= `ZeroWord;
         if_mem_a_o      <= `ZeroWord;
@@ -57,6 +63,16 @@ always @ (posedge clk) begin
         icache_waddr_o  <= `ZeroWord;
         icache_winst_o  <= `ZeroWord;
         icache_raddr_o  <= `ZeroWord;
+        //----------------------------
+        `ifdef PREDICT
+        for (i = 0; i < `BhtNum; i = i + 1) begin
+            bht[i]      <= 2'b01;
+        end
+        for (i = 0; i < `BtbNum; i = i + 1) begin
+            btb[i]      <= `ZeroWord;
+        end
+        `endif
+        //----------------------------
     end else if (branch_flag_i == `Branch) begin // todo maybe wrong
         cnt             <= `If0;
         pc_o            <= branch_addr_i;
