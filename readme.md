@@ -7,18 +7,17 @@
 | array_test1    |             |
 | array_test2    |             |
 | basicopt1      |             |
-| builgarian     |             |
-| expr           |             |
+| bulgarian      |             |
+| expr           | P           |
 | gcd            | P           |
 | hanoi          |             |
-| io             |             |
 | lvalue2        | P           |
 | magic          |             |
-| manyarguments  |             |
-| multiarray     |             |
-| pi             |             |
+| manyarguments  | P           |
+| multiarray     | P           |
+| pi             | U           |
 | qsort          |             |
-| queens         |             |
+| queens         | F           |
 | statement_test |             |
 | superloop      |             |
 | tak            |             |
