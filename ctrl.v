@@ -33,12 +33,12 @@ always @ (*) begin
         mem_wr_o    <= `WriteDisable;
         mem_a_o     <= `ZeroWord;
         mem_dout_o  <= `Zero8;
-    end else if (mem_ctrl_req_i) begin
+    end else if (mem_ctrl_req_i == `Stop) begin
         stall       <= 6'b111111;
         mem_wr_o    <= mem_mem_wr_i;
         mem_a_o     <= mem_mem_a_i;
         mem_dout_o  <= mem_mem_dout_i;
-    end else if (if_ctrl_req_i) begin
+    end else if (if_ctrl_req_i == `Stop) begin
         stall       <= 6'b000010;      
         mem_wr_o    <= `WriteDisable;
         mem_a_o     <= if_mem_a_i;
