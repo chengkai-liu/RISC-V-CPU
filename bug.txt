@@ -1,0 +1,7 @@
+queens
+1.
+counter 59
+bnez
+wrong: 118c -> 11b0
+right: 118c -> 1190
+分析：reg[14]的值并没有及时更新，有延迟，导致bnez指令出错。寄存器更新不及时。
