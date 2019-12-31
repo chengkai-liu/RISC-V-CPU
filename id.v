@@ -1,5 +1,5 @@
 `include "defines.v"
-// todo pc
+
 module stage_id(
     input wire                  rst,
     input wire                  rdy,
@@ -38,13 +38,13 @@ module stage_id(
 /*---------------------jump / branch------------------------*/
     // to ex
     output reg[`InstAddrBus]    jump_link_addr_o,
-    // to pc_reg 
+    // to if
     output reg                  branch_flag_o,
     output reg[`InstAddrBus]    branch_addr_o,
 
 /*---------------------load / store--------------------------*/
     // to ex
-    output reg[`RegBus]         ls_offset_o 
+    output reg[`RegBus]         ls_offset_o
 );
 
 //opcode, funct3, funct7
