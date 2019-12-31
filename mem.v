@@ -105,65 +105,67 @@ always @ (posedge clk) begin
                 endcase
             end
             `Mem1: begin
-                if (dcache_hit_i == `Hit) begin
-                    case (aluop_i)
-                        `EXE_LB_OP: begin
-                            load_data       <= {{24{dcache_data_i[7]}}, dcache_data_i[7:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LBU_OP: begin
-                            load_data       <= {24'b0, dcache_data_i[7:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LH_OP: begin
-                            load_data       <= {{16{dcache_data_i[15]}}, dcache_data_i[15:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LHU_OP: begin
-                            load_data       <= {24'b0, dcache_data_i[15:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LW_OP: begin
-                            load_data       <= dcache_data_i;
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        default: begin
-                        end
-                    endcase // cache hit -- 2CC
-                end else begin
-                    case (aluop_i)
-                        `EXE_LB_OP, `EXE_LBU_OP: begin
-                            cnt                 <= `Mem2;
-                        end
-                        `EXE_LH_OP, `EXE_LHU_OP, `EXE_LW_OP: begin
-                            mem_mem_a_o         <= ma_addr_i + 1;
-                            cnt                 <= `Mem2;
-                        end
-                        `EXE_SB_OP: begin
-                            mem_mem_wr_o        <= `WriteDisable;
+                case (aluop_i)
+                    `EXE_LB_OP: begin
+                        if (dcache_hit_i) begin
+                            load_data           <= {{24{dcache_data_i[7]}}, dcache_data_i[7:0]};
                             mem_mem_a_o         <= `ZeroWord;
                             mem_access          <= `False_v;
-                            cnt                 <= `Mem0; // SB--2CC
-                        end
-                        `EXE_SH_OP, `EXE_SW_OP: begin
-                            mem_mem_a_o         <= ma_addr_i + 1;
-                            mem_mem_dout_o      <= wdata_i[15:8];
+                            cnt                 <= `Mem0;
+                        end else begin
                             cnt                 <= `Mem2;
                         end
-                        default: begin
-                        end 
-                    endcase
-                end
+                    end
+                    `EXE_LBU_OP: begin
+                            cnt                 <= `Mem2;
+                    end
+                    `EXE_LH_OP: begin
+                        if (dcache_hit_i) begin
+                            load_data           <= {{16{dcache_data_i[15]}}, dcache_data_i[15:0]};
+                            mem_mem_a_o         <= `ZeroWord;
+                            mem_access          <= `False_v;
+                            cnt                 <= `Mem0;
+                        end else begin
+                            mem_mem_a_o         <= ma_addr_i + 1;
+                            cnt                 <= `Mem2;
+                        end
+                    end
+                    `EXE_LHU_OP: begin
+                        if (dcache_hit_i) begin
+                            load_data           <= {16'b0, dcache_data_i[15:0]};
+                            mem_mem_a_o         <= `ZeroWord;
+                            mem_access          <= `False_v;
+                            cnt                 <= `Mem0;
+                        end else begin
+                            mem_mem_a_o         <= ma_addr_i + 1;
+                            cnt                 <= `Mem2;
+                        end
+                    end
+                    `EXE_LW_OP: begin
+                        if (dcache_hit_i) begin
+                            load_data           <= dcache_data_i;
+                            mem_mem_a_o         <= `ZeroWord;
+                            mem_access          <= `False_v;
+                            cnt                 <= `Mem0;
+                        end else begin
+                            mem_mem_a_o         <= ma_addr_i + 1;
+                            cnt                 <= `Mem2;
+                        end
+                    end
+                    `EXE_SB_OP: begin
+                        mem_mem_wr_o        <= `WriteDisable;
+                        mem_mem_a_o         <= `ZeroWord;
+                        mem_access          <= `False_v;
+                        cnt                 <= `Mem0; // SB--2CC
+                    end
+                    `EXE_SH_OP, `EXE_SW_OP: begin
+                        mem_mem_a_o         <= ma_addr_i + 1;
+                        mem_mem_dout_o      <= wdata_i[15:8];
+                        cnt                 <= `Mem2;
+                    end
+                    default: begin
+                    end 
+                endcase
             end
             `Mem2: begin
                 case (aluop_i)
