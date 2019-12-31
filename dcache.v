@@ -15,9 +15,9 @@ module dcache(
     output reg[`RegBus]             dcache_data_o
 );
 
-reg                 valid_bit[`BlockNum - 1:0];
-reg[`TagBus]        cache_tag[`BlockNum - 1:0];
-reg[`InstBus]       cache_data[`BlockNum - 1:0];
+(* ram_style = "registers" *) reg                 valid_bit[`BlockNum - 1:0];
+(* ram_style = "registers" *) reg[`TagBus]        cache_tag[`BlockNum - 1:0];
+(* ram_style = "registers" *) reg[`InstBus]       cache_data[`BlockNum - 1:0];
 
 //
 wire[`IndexBus]     rindex_i;
