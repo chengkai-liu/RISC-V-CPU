@@ -58,7 +58,7 @@ always @ (posedge clk) begin
         icache_waddr_o  <= `ZeroWord;
         icache_winst_o  <= `ZeroWord;
         icache_raddr_o  <= `ZeroWord;
-    end else if (branch_flag_i == `Branch && stall[0] == `NoStop) begin // fixme unsure but accounts
+    end else if (branch_flag_i == `Branch && stall[0] == `NoStop) begin
         cnt             <= `If0;
         pc_o            <= branch_addr_i;
         inst_o          <= `ZeroWord;

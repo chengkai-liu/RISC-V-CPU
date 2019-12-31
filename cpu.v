@@ -1,15 +1,4 @@
-`include "regfile.v"
-`include "if.v"
-`include "if_id.v"
-`include "id.v"
-`include "id_ex.v"
-`include "ex.v"
-`include "ex_mem.v"
-`include "mem.v"
-`include "mem_wb.v"
-`include "ctrl.v"
-`include "icache.v"
-`include "dcache.v"
+`include "defines.v"
 // RISCV32I CPU top module
 // port modification allowed for debugging purposes
 
