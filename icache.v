@@ -77,6 +77,4 @@ always @ (*) begin
     end
 end
 
-// todo
-
 endmodule // icache
