@@ -73,7 +73,7 @@ always @ (posedge clk) begin
         end
         `endif
         //----------------------------
-    end else if (branch_flag_i == `Branch) begin // todo maybe wrong
+    end else if (branch_flag_i == `Branch && stall[0] == `NoStop) begin // fixme unsure but accounts
         cnt             <= `If0;
         pc_o            <= branch_addr_i;
         inst_o          <= `ZeroWord;
