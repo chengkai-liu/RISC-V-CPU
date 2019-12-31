@@ -70,7 +70,7 @@ always @ (posedge clk) begin
             bht[i]      <= 2'b01;
         end
         //----------------------------
-    end else if (alusel_i == `EXE_RES_JB && stall[0] == `NoStop) begin // fixme unsure but accounts
+    end else if (alusel_i == `EXE_RES_JB && stall[0] == `NoStop) begin // todo
         // bht update
         if (branch_flag_i == `Branch && bht[(pc_o - 4) % `BhtNum] != 2'b11) begin
             bht[(pc_o - 4) % `BhtNum]       <= bht[(pc_o - 4) % `BhtNum] + 1;
@@ -153,8 +153,18 @@ always @ (posedge clk) begin
                 icache_winst_o      <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
                 if_ctrl_req_o       <= `NoStop;
                 pc_o                <= pc + 4;
-                pc                  <= pc + 4;
+                // pc                  <= pc + 4;
                 cnt                 <= `If0;
+                // branch prediction
+                if (inst_block1[6]) begin
+                    if (bht[pc % `BhtNum] == 2'b10 || bht[pc % `BhtNum] == 2'b11) begin
+                        pc        <= pc + {{20{if_mem_din_i[7]}}, inst_block1[7], if_mem_din_i[6:1], inst_block2[3:0], 1'b0};
+                    end else begin
+                        pc        <= pc + 4;
+                    end
+                end else begin
+                        pc        <= pc + 4;
+                end
             end
 /*-----------------------------------------------------------------------------*/
             `ReIf00: begin
