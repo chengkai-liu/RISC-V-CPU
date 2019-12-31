@@ -117,7 +117,7 @@ always @ (*) begin
                 jump_link_addr_o    <= pc_i; 
                 branch_flag_o       <= `Branch;
                 branch_addr_o       <= pc_i - 4 + {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
-            end // 7'b1101111
+            end // 7'b1101111 JAL
             7'b1100111: begin
                 aluop_o             <= `EXE_JALR_OP;
                 alusel_o            <= `EXE_RES_JB;
@@ -128,7 +128,7 @@ always @ (*) begin
                 jump_link_addr_o    <= pc_i;
                 branch_flag_o       <= `Branch;
                 branch_addr_o       <= reg1_o + {{20{inst_i[31]}}, inst_i[31:20]}; 
-            end // 7'b1100111
+            end // 7'b1100111 JALR
             7'b1100011: begin
                 wreg_o              <= `WriteDisable;
                 alusel_o            <= `EXE_RES_JB;
