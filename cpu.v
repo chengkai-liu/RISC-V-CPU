@@ -9,6 +9,7 @@
 `include "mem_wb.v"
 `include "ctrl.v"
 `include "icache.v"
+`include "dcache.v"
 // RISCV32I CPU top module
 // port modification allowed for debugging purposes
 
@@ -73,7 +74,7 @@ wire[`RegBus]           dcache_wdata;
 wire[`InstAddrBus]      dcache_raddr;
 // dcache output
 wire                    dcache_hit;
-wire                    dcache_data;
+wire[`RegBus]           dcache_data;
 
 // IF --> IF_ID
 wire[`InstAddrBus]      if_pc_o;
@@ -248,12 +249,15 @@ stage_mem mem0(
     // input
     .clk(clk_in),                   .rst(rst_in),
     .aluop_i(mem_aluop_i),          .alusel_i(mem_alusel_i),
-    .wd_i(mem_wd_i),                .wreg_i(mem_wreg_i),        .wdata_i(mem_wdata_i),
+    .wd_i(mem_wd_i),                .wreg_i(mem_wreg_i),                .wdata_i(mem_wdata_i),
     .ma_addr_i(mem_ma_addr_i),      .mem_mem_din_i(mem_din),
+    .dcache_hit_i(dcache_hit),      .dcache_data_i(dcache_data),
     // output
-    .wd_o(mem_wd_o),                .wreg_o(mem_wreg_o),        .wdata_o(mem_wdata_o),
+    .wd_o(mem_wd_o),                .wreg_o(mem_wreg_o),                .wdata_o(mem_wdata_o),
     .mem_ctrl_req_o(mem_ctrl_req),
-    .mem_mem_wr_o(mem_mem_wr),      .mem_mem_a_o(mem_mem_a),    .mem_mem_dout_o(mem_mem_dout)
+    .mem_mem_wr_o(mem_mem_wr),      .mem_mem_a_o(mem_mem_a),            .mem_mem_dout_o(mem_mem_dout),
+    .dcache_we_o(dcache_we),        .dcache_waddr_o(dcache_waddr),      .dcache_wdata_o(dcache_wdata),
+    .dcache_raddr_o(dcache_raddr)
 );
 
 mem_wb mem_wb0(

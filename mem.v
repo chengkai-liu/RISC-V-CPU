@@ -35,7 +35,7 @@ module stage_mem(
     // to dcache
     output reg                          dcache_we_o,
     output reg[`InstAddrBus]            dcache_waddr_o,
-    output reg[`DataBus]                dcache_wdata_o,
+    output reg[`RegBus]                 dcache_wdata_o,
 
     output reg[`InstAddrBus]            dcache_raddr_o
 );
@@ -78,19 +78,20 @@ always @ (posedge clk) begin
     end else if (mem_ctrl_req_o == `NoStop) begin
         mem_access          <= `True_v;
     end else if (mem_ctrl_req_o == `Stop) begin
+        // dcache
+        dcache_we_o         <= `WriteDisable;
+        dcache_waddr_o      <= `ZeroWord;
+        dcache_wdata_o      <= `ZeroWord;
+        dcache_raddr_o      <= `ZeroWord;
         case (cnt)
             `Mem0: begin
                 mem_access      <= `True_v;
-                
                 case (alusel_i)
                     `EXE_RES_LOAD: begin
                         mem_mem_wr_o        <= `WriteDisable;
                         mem_mem_a_o         <= ma_addr_i;
                         cnt                 <= `Mem1;
                         // dcache
-                        dcache_we_o         <= `WriteDisable;
-                        dcache_waddr_o      <= `ZeroWord;
-                        dcache_wdata_o      <= `ZeroWord;
                         dcache_raddr_o      <= ma_addr_i;
                     end
                     `EXE_RES_STORE: begin
@@ -98,11 +99,6 @@ always @ (posedge clk) begin
                         mem_mem_a_o         <= ma_addr_i;
                         mem_mem_dout_o      <= wdata_i[7:0];
                         cnt                 <= `Mem1;
-                        // dcache
-                        dcache_we_o         <= `WriteDisable;
-                        dcache_waddr_o      <= `ZeroWord;
-                        dcache_wdata_o      <= `ZeroWord;
-                        dcache_raddr_o      <= `ZeroWord;
                     end
                     default: begin
                     end
@@ -140,6 +136,8 @@ always @ (posedge clk) begin
                             mem_mem_a_o     <= `ZeroWord;
                             mem_access      <= `False_v;
                             cnt             <= `Mem0;
+                        end
+                        default: begin
                         end
                     endcase // cache hit -- 2CC
                 end else begin
