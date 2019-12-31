@@ -66,6 +66,15 @@ wire[`InstAddrBus]      icache_raddr;
 wire                    icache_hit;
 wire[`InstBus]          icache_inst;
 
+// dcache input
+wire                    dcache_we;
+wire[`InstAddrBus]      dcache_waddr;
+wire[`RegBus]           dcache_wdata;
+wire[`InstAddrBus]      dcache_raddr;
+// dcache output
+wire                    dcache_hit;
+wire                    dcache_data;
+
 // IF --> IF_ID
 wire[`InstAddrBus]      if_pc_o;
 wire[`InstBus]          if_inst_o;
@@ -274,6 +283,15 @@ icache icache0(
     .raddr_i(icache_raddr),
     // output
     .icache_hit_o(icache_hit),      .icache_inst_o(icache_inst)
+);
+
+dcache dcache0(
+    // input 
+    .clk(clk_in),                   .rst(rst_in),               .rdy(rdy_in),
+    .we_i(dcache_we),               .waddr_i(dcache_waddr),     .wdata_i(dcache_wdata),
+    .raddr_i(dcache_raddr),
+    // output
+    .dcache_hit_o(dcache_hit),      .dcache_data_o(dcache_data)
 );
 
 endmodule
