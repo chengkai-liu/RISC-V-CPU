@@ -67,7 +67,7 @@ always @ (posedge clk) begin
         icache_raddr_o  <= `ZeroWord;
         //----------------------------
         for (i = 0; i < `BhtNum; i = i + 1) begin
-            bht[i]      <= 2'b00;
+            bht[i]      <= 2'b01;
         end
         //----------------------------
     end else if (alusel_i == `EXE_RES_JB && stall[0] == `NoStop) begin

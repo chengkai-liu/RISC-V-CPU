@@ -1,5 +1,5 @@
 `include "defines.v"
-// todo modify
+
 module ctrl(
     input wire                  rst,
     input wire                  rdy,
