@@ -131,8 +131,8 @@
 `define BlockNum        128
 `define BlockNumLog2    7    
 
-`define BhtNum          4096
-`define BtbNum          64
+`define BhtNum          128
+// `define BtbNum          64
 
 `define RegWidth        32
 `define DoubleRegWidth  64
