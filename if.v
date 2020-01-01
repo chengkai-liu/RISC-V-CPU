@@ -31,7 +31,7 @@ module stage_if(
     // to ctrl
     output reg                      if_ctrl_req_o,  
 
-    // to icahce
+    // to icache
     output reg                      icache_we_o,
     output reg[`InstAddrBus]        icache_waddr_o,
     output reg[`InstBus]            icache_winst_o,
