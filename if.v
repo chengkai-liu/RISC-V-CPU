@@ -67,10 +67,10 @@ always @ (posedge clk) begin
         icache_raddr_o  <= `ZeroWord;
         //----------------------------
         for (i = 0; i < `BhtNum; i = i + 1) begin
-            bht[i]      <= 2'b01;
+            bht[i]      <= 2'b00;
         end
         //----------------------------
-    end else if (alusel_i == `EXE_RES_JB && stall[0] == `NoStop) begin // todo
+    end else if (alusel_i == `EXE_RES_JB && stall[0] == `NoStop) begin
         // bht update
         if (branch_flag_i == `Branch && bht[(pc_o - 4) % `BhtNum] != 2'b11) begin
             bht[(pc_o - 4) % `BhtNum]       <= bht[(pc_o - 4) % `BhtNum] + 1;
