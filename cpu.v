@@ -56,6 +56,7 @@ wire[`InstAddrBus]      icache_raddr;
 wire                    icache_hit;
 wire[`InstBus]          icache_inst;
 
+/*
 // dcache input
 wire                    dcache_we;
 wire[`InstAddrBus]      dcache_waddr;
@@ -64,6 +65,7 @@ wire[`InstAddrBus]      dcache_raddr;
 // dcache output
 wire                    dcache_hit;
 wire[`RegBus]           dcache_data;
+*/
 
 // IF --> IF_ID
 wire[`InstAddrBus]      if_pc_o;
@@ -240,13 +242,10 @@ stage_mem mem0(
     .aluop_i(mem_aluop_i),          .alusel_i(mem_alusel_i),
     .wd_i(mem_wd_i),                .wreg_i(mem_wreg_i),                .wdata_i(mem_wdata_i),
     .ma_addr_i(mem_ma_addr_i),      .mem_mem_din_i(mem_din),
-    .dcache_hit_i(dcache_hit),      .dcache_data_i(dcache_data),
     // output
     .wd_o(mem_wd_o),                .wreg_o(mem_wreg_o),                .wdata_o(mem_wdata_o),
     .mem_ctrl_req_o(mem_ctrl_req),
-    .mem_mem_wr_o(mem_mem_wr),      .mem_mem_a_o(mem_mem_a),            .mem_mem_dout_o(mem_mem_dout),
-    .dcache_we_o(dcache_we),        .dcache_waddr_o(dcache_waddr),      .dcache_wdata_o(dcache_wdata),
-    .dcache_raddr_o(dcache_raddr)
+    .mem_mem_wr_o(mem_mem_wr),      .mem_mem_a_o(mem_mem_a),            .mem_mem_dout_o(mem_mem_dout)
 );
 
 mem_wb mem_wb0(
@@ -278,6 +277,7 @@ icache icache0(
     .icache_hit_o(icache_hit),      .icache_inst_o(icache_inst)
 );
 
+/*
 dcache dcache0(
     // input 
     .clk(clk_in),                   .rst(rst_in),               .rdy(rdy_in),
@@ -286,5 +286,6 @@ dcache dcache0(
     // output
     .dcache_hit_o(dcache_hit),      .dcache_data_o(dcache_data)
 );
+*/
 
 endmodule

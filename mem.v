@@ -16,10 +16,6 @@ module stage_mem(
     // cpu.v
     input wire[`DataBus]                mem_mem_din_i,
 
-    // from dcache
-    input wire                          dcache_hit_i,
-    input wire[`RegBus]                 dcache_data_i,
-
     // to wb    
     output reg[`RegAddrBus]             wd_o,
     output reg                          wreg_o,
@@ -30,24 +26,40 @@ module stage_mem(
     // cpu.v
     output reg                          mem_mem_wr_o,
     output reg[`InstAddrBus]            mem_mem_a_o,
-    output reg[`DataBus]                mem_mem_dout_o,
-
-    // to dcache
-    output reg                          dcache_we_o,
-    output reg[`InstAddrBus]            dcache_waddr_o,
-    output reg[`RegBus]                 dcache_wdata_o,
-
-    output reg[`InstAddrBus]            dcache_raddr_o
+    output reg[`DataBus]                mem_mem_dout_o
 );
 
-reg[2:0]            cnt;
-reg[`DataBus]       data_block1;
-reg[`DataBus]       data_block2;
-reg[`DataBus]       data_block3;
+reg[2:0]                cnt;
+reg[`DataBus]           data_block1;
+reg[`DataBus]           data_block2;
+reg[`DataBus]           data_block3;
 
-reg                 mem_access;
-reg[`RegBus]        load_data;
+reg                     mem_access;
+reg[`RegBus]            load_data;
 
+// dcache
+reg                     valid_bit[`BlockNum - 1:0];
+reg[`TagBus]            cache_tag[`BlockNum - 1:0];
+reg[`InstBus]           cache_data[`BlockNum - 1:0];
+//
+wire[`InstAddrBus]      addr;
+assign                  addr = ma_addr_i;
+//
+wire[`IndexBus]         index;
+wire[`TagBus]           tag;
+//
+assign index            = addr[`BlockNumLog2 - 1:0];
+assign tag              = addr[17:`BlockNumLog2];
+//
+wire                    r_valid;
+wire[`TagBus]           r_cache_tag;
+wire[`InstBus]          r_cache_data;
+//
+assign r_valid          = valid_bit[index];
+assign r_cache_tag      = cache_tag[index];
+assign r_cache_data     = cache_data[index];
+
+reg                     hit;
 
 always @ (*) begin
     if (rst == `RstEnable) begin
@@ -59,6 +71,7 @@ always @ (*) begin
     end
 end
 
+integer i;
 always @ (posedge clk) begin
     if (rst == `RstEnable) begin
         mem_mem_wr_o        <= `WriteDisable;
@@ -71,28 +84,54 @@ always @ (posedge clk) begin
         mem_access          <= `True_v;
         load_data           <= `ZeroWord;
         //-----------------------------------
-        dcache_we_o         <= `WriteDisable;
-        dcache_waddr_o      <= `ZeroWord;
-        dcache_wdata_o      <= `ZeroWord;
-        dcache_raddr_o      <= `ZeroWord;
+        for (i = 0; i < `BlockNum; i = i + 1) begin
+            valid_bit[i]    <= `Invalid;
+        end
+        hit <= 1'b0;
     end else if (mem_ctrl_req_o == `NoStop) begin
         mem_access          <= `True_v;
     end else if (mem_ctrl_req_o == `Stop) begin
-        // dcache
-        dcache_we_o         <= `WriteDisable;
-        dcache_waddr_o      <= `ZeroWord;
-        dcache_wdata_o      <= `ZeroWord;
-        dcache_raddr_o      <= `ZeroWord;
+        hit <= 1'b0;
         case (cnt)
             `Mem0: begin
                 mem_access      <= `True_v;
                 case (alusel_i)
                     `EXE_RES_LOAD: begin
-                        mem_mem_wr_o        <= `WriteDisable;
-                        mem_mem_a_o         <= ma_addr_i;
-                        cnt                 <= `Mem1;
-                        // dcache
-                        dcache_raddr_o      <= ma_addr_i;
+                        if ((tag == r_cache_tag) && r_valid == `Valid) begin
+                            hit <= 1'b1;
+                            case (aluop_i)
+                                `EXE_LB_OP: begin
+                                    load_data       <= {{24{r_cache_data[7]}}, r_cache_data[7:0]};
+                                    mem_mem_a_o     <= `ZeroWord;
+                                    mem_access      <= `False_v;
+                                    cnt             <= `Mem0;
+                                end
+                                `EXE_LH_OP: begin
+                                    load_data       <= {{16{r_cache_data[15]}}, r_cache_data[15:0]};
+                                    mem_mem_a_o     <= `ZeroWord;
+                                    mem_access      <= `False_v;
+                                    cnt             <= `Mem0;
+                                end
+                                `EXE_LHU_OP: begin
+                                    load_data       <= {24'b0, r_cache_data[15:0]};
+                                    mem_mem_a_o     <= `ZeroWord;
+                                    mem_access      <= `False_v;
+                                    cnt             <= `Mem0;
+                                end
+                                `EXE_LW_OP: begin
+                                    load_data       <= r_cache_data;
+                                    mem_mem_a_o     <= `ZeroWord;
+                                    mem_access      <= `False_v;
+                                    cnt             <= `Mem0;
+                                end
+                                default: begin
+                                end
+                            endcase
+                        end else begin
+                            mem_mem_wr_o        <= `WriteDisable;
+                            mem_mem_a_o         <= ma_addr_i;
+                            cnt                 <= `Mem1;
+                        end
                     end
                     `EXE_RES_STORE: begin
                         mem_mem_wr_o        <= `WriteEnable;
@@ -105,37 +144,7 @@ always @ (posedge clk) begin
                 endcase
             end
             `Mem1: begin
-                if (dcache_hit_i == `Hit) begin
-                    case (aluop_i)
-                        `EXE_LB_OP: begin
-                            load_data       <= {{24{dcache_data_i[7]}}, dcache_data_i[7:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LH_OP: begin
-                            load_data       <= {{16{dcache_data_i[15]}}, dcache_data_i[15:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LHU_OP: begin
-                            load_data       <= {24'b0, dcache_data_i[15:0]};
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        `EXE_LW_OP: begin
-                            load_data       <= dcache_data_i;
-                            mem_mem_a_o     <= `ZeroWord;
-                            mem_access      <= `False_v;
-                            cnt             <= `Mem0;
-                        end
-                        default: begin
-                        end
-                    endcase // cache hit -- 2CC
-                end else begin
-                    case (aluop_i)
+                case (aluop_i)
                         `EXE_LB_OP, `EXE_LBU_OP: begin
                             cnt                 <= `Mem2;
                         end
@@ -156,8 +165,7 @@ always @ (posedge clk) begin
                         end
                         default: begin
                         end 
-                    endcase
-                end
+                endcase
             end
             `Mem2: begin
                 case (aluop_i)
@@ -237,9 +245,9 @@ always @ (posedge clk) begin
                         mem_access          <= `False_v;
                         cnt                 <= `Mem0; // SW--5CC
                         // cache
-                        dcache_we_o         <= `WriteEnable;
-                        dcache_waddr_o      <= ma_addr_i;
-                        dcache_wdata_o      <= wdata_i;
+                        valid_bit[index]    <= `Valid;
+                        cache_tag[index]    <= addr[17:`BlockNumLog2];
+                        cache_data[index]   <= wdata_i;
                     end
                     default: begin
                     end
@@ -253,9 +261,9 @@ always @ (posedge clk) begin
                         mem_access          <= `False_v;
                         cnt                 <= `Mem0; // LW--6CC
                         // cache
-                        dcache_we_o         <= `WriteEnable;
-                        dcache_waddr_o      <= ma_addr_i;
-                        dcache_wdata_o      <= {mem_mem_din_i, data_block3, data_block2, data_block1};
+                        valid_bit[index]    <= `Valid;
+                        cache_tag[index]    <= addr[17:`BlockNumLog2];
+                        cache_data[index]   <= {mem_mem_din_i, data_block3, data_block2, data_block1};
                     end
                 endcase
             end
