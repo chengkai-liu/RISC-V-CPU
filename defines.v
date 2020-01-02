@@ -128,8 +128,8 @@
 `define InstMemNum      131071
 `define InstMemNumLog2  17
 
-`define BlockNum        128
-`define BlockNumLog2    7
+`define BlockNum        256
+`define BlockNumLog2    8
 
 `define BhtNum          128
 // `define BtbNum          64
