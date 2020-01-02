@@ -1,5 +1,5 @@
 `include "defines.v"
-// todo pc
+
 module stage_id(
     input wire                  rst,
     input wire                  rdy,
