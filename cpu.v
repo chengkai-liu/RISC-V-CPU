@@ -145,7 +145,7 @@ stage_if if0(
     .clk(clk_in),       .rst(rst_in),
     .stall(stall),
     .if_mem_din_i(mem_din),
-    .branch_flag_i(branch_flag),    .branch_addr_i(branch_addr),        .alusel_i(id_alusel_o),
+    .branch_flag_i(branch_flag),    .branch_addr_i(branch_addr),        //.alusel_i(id_alusel_o),
     .icache_hit_i(icache_hit),      .icache_inst_i(icache_inst),
 
     // output
