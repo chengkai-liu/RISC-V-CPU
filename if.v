@@ -14,10 +14,6 @@ module stage_if(
     input wire                      branch_flag_i,
     input wire[`InstAddrBus]        branch_addr_i,
 
-    // from icache
-    input wire                      icache_hit_i,
-    input wire[`InstBus]            icache_inst_i,
-
 /*---------------------------------------------------------*/
 
     output reg[`InstAddrBus]        pc_o,   // pc + 4
@@ -27,75 +23,94 @@ module stage_if(
     output reg[`InstAddrBus]        if_mem_a_o,
 
     // to ctrl
-    output reg                      if_ctrl_req_o,  
-
-    // to icahce
-    output reg                      icache_we_o,
-    output reg[`InstAddrBus]        icache_waddr_o,
-    output reg[`InstBus]            icache_winst_o,
-
-    output reg[`InstAddrBus]        icache_raddr_o
+    output reg                      if_ctrl_req_o,
+    output reg                      branch_ctrl_req_o
 );
+
+reg[`InstAddrBus]           pc;
 
 reg[3:0]                    cnt;
 reg[`DataBus]               inst_block1;
 reg[`DataBus]               inst_block2;
 reg[`DataBus]               inst_block3;
 
+// icache
+reg                         valid_bit[`BlockNum - 1:0];
+reg[`TagBus]                cache_tag[`BlockNum - 1:0];    
+reg[`InstBus]               cache_data[`BlockNum - 1:0];
+
+//
+wire[`InstAddrBus]          addr;
+assign                      addr = pc;
+//
+wire[`IndexBus]             index;
+wire[`TagBus]               tag;
+//
+assign index               = addr[`BlockNumLog2 - 1:0];
+assign tag                 = addr[17:`BlockNumLog2];
+
+wire                        r_valid;
+wire[`TagBus]               r_cache_tag;
+wire[`InstBus]              r_cache_inst;
+
+assign r_valid              = valid_bit[index];
+assign r_cache_tag          = cache_tag[index];
+assign r_cache_inst         = cache_data[index];
+
 integer i;
 always @ (posedge clk) begin
     if (rst == `RstEnable) begin
-        cnt             <= `If0;
-        inst_block1     <= `Zero8;
-        inst_block2     <= `Zero8;
-        inst_block3     <= `Zero8;
+        cnt                 <= `If0;
+        inst_block1         <= `Zero8;
+        inst_block2         <= `Zero8;
+        inst_block3         <= `Zero8;
         //----------------------------
-        pc_o            <= `ZeroWord;
-        inst_o          <= `ZeroWord;
-        if_mem_a_o      <= `ZeroWord;
-        if_ctrl_req_o   <= `NoStop;
-        icache_we_o     <= `WriteDisable;
-        icache_waddr_o  <= `ZeroWord;
-        icache_winst_o  <= `ZeroWord;
-        icache_raddr_o  <= `ZeroWord;
+        pc                  <= `ZeroWord;
+        pc_o                <= `ZeroWord;
+        inst_o              <= `ZeroWord;
+        if_mem_a_o          <= `ZeroWord;
+        if_ctrl_req_o       <= `NoStop;
+        branch_ctrl_req_o   <= `NoStop;
         //----------------------------
+        for (i = 0; i < `BlockNum; i = i + 1) begin
+            valid_bit[i]    <= `Invalid;
+        end
     end else if (branch_flag_i == `Branch && stall[0] == `NoStop) begin
-        cnt             <= `If0;
-        pc_o            <= branch_addr_i;
-        inst_o          <= `ZeroWord;
-        if_mem_a_o      <= `ZeroWord;
-        if_ctrl_req_o   <= `NoStop;
-        icache_raddr_o  <= branch_addr_i;
+        cnt                 <= `If0;
+        pc                  <= branch_addr_i;
+        pc_o                <= branch_addr_i;
+        inst_o              <= `ZeroWord;
+        if_mem_a_o          <= `ZeroWord;
+        if_ctrl_req_o       <= `NoStop;
+        branch_ctrl_req_o   <= `Stop;
     end else begin
+        branch_ctrl_req_o   <= `NoStop;
         case (cnt)
             `If0: begin
-                icache_we_o         <= `WriteDisable;
-                if (stall[1] == `NoStop && stall[2] == `NoStop) begin
-                    if_ctrl_req_o           <= `Stop;
-                    if_mem_a_o              <= pc_o;
-                    icache_raddr_o          <= pc_o;
-                    cnt                     <= `If1;
+                if (stall[0] == `NoStop) begin
+                    if ((tag == r_cache_tag) && r_valid == `Valid) begin
+                        inst_o                  <= r_cache_inst;
+                        if_ctrl_req_o           <= `NoStop;
+                        pc                      <= pc + 4;
+                        pc_o                    <= pc + 4;
+                        cnt                     <= `If0;    // cache hit
+                    end else begin
+                        if_mem_a_o              <= pc;
+                        if_ctrl_req_o           <= `Stop;
+                        cnt                     <= `If1;
+                    end
                 end
             end
             `If1: begin
-                if (icache_hit_i == `Hit) begin
-                    if (stall[0] == `NoStop) begin
-                        inst_o              <= icache_inst_i;
-                        if_ctrl_req_o       <= `NoStop;
-                        pc_o                <= pc_o + 4;
-                        cnt                 <= `If0; // fetched
-                    end
+                if (stall[0] == `Stop) begin
+                    cnt                 <= `ReIf00;
                 end else begin
-                    if (stall[0] == `Stop) begin
-                        cnt                 <= `ReIf00;
-                    end else begin
-                        if_mem_a_o          <= pc_o + 1;
-                        cnt                 <= `If2;
-                    end
+                    if_mem_a_o          <= pc + 1;
+                    cnt                 <= `If2;
                 end
             end
             `If2: begin
-                if_mem_a_o              <= pc_o + 2;
+                if_mem_a_o              <= pc + 2;
                 inst_block1             <= if_mem_din_i;
                 cnt                     <= `If3;
             end
@@ -103,7 +118,7 @@ always @ (posedge clk) begin
                 if (stall[0] == `Stop) begin
                     cnt                 <= `ReIf11;
                 end else begin
-                    if_mem_a_o          <= pc_o + 3;
+                    if_mem_a_o          <= pc + 3;
                     inst_block2         <= if_mem_din_i;
                     cnt                 <= `If4;
                 end
@@ -117,45 +132,49 @@ always @ (posedge clk) begin
                 end
             end
             `If5: begin
-                inst_o              <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
-                icache_we_o         <= `WriteEnable;
-                icache_waddr_o      <= icache_raddr_o;
-                icache_winst_o      <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
-                if_ctrl_req_o       <= `NoStop;
-                pc_o                <= pc_o + 4;
-                cnt                 <= `If0;
+                inst_o                  <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
+                // icache
+                valid_bit[index]        <= `Valid;
+                cache_tag[index]        <= addr[17:`BlockNumLog2];
+                cache_data[index]       <= {if_mem_din_i, inst_block3, inst_block2, inst_block1};
+                //
+                if_ctrl_req_o           <= `NoStop;
+                pc                      <= pc + 4;
+                pc_o                    <= pc + 4;
+                cnt                     <= `If0;
+                
             end
 /*-----------------------------------------------------------------------------*/
             `ReIf00: begin
                 if (stall[0] == `NoStop) begin
-                    if_mem_a_o      <= pc_o;
+                    if_mem_a_o      <= pc;
                     cnt             <= `ReIf01;
                 end
             end
             `ReIf01: begin
-                if_mem_a_o          <= pc_o + 1;
+                if_mem_a_o          <= pc + 1;
                 cnt                 <= `If2;
             end
             //-----------------------------------
             `ReIf11: begin
                 if (stall[0] == `NoStop) begin
-                    if_mem_a_o      <= pc_o + 1;
+                    if_mem_a_o      <= pc + 1;
                     cnt             <= `ReIf12;
                 end
             end
             `ReIf12: begin
-                if_mem_a_o          <= pc_o + 2;
+                if_mem_a_o          <= pc + 2;
                 cnt                 <= `If3;
             end
             //-----------------------------------
             `ReIf22: begin
                 if (stall[0] == `NoStop) begin
-                    if_mem_a_o      <= pc_o + 2;
+                    if_mem_a_o      <= pc + 2;
                     cnt             <= `ReIf23;
                 end
             end
             `ReIf23: begin
-                if_mem_a_o          <= pc_o + 3;
+                if_mem_a_o          <= pc + 3;
                 cnt                 <= `If4;
             end
         

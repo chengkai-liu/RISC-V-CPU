@@ -6,6 +6,7 @@ module ctrl(
     
     input wire                  if_ctrl_req_i,
     input wire                  mem_ctrl_req_i,
+    input wire                  branch_ctrl_req_i,
 
     input wire[`InstAddrBus]    if_mem_a_i,   
     input wire[`InstAddrBus]    mem_mem_a_i,   
@@ -38,6 +39,11 @@ always @ (*) begin
         mem_wr_o    <= mem_mem_wr_i;
         mem_a_o     <= mem_mem_a_i;
         mem_dout_o  <= mem_mem_dout_i;
+    end else if (branch_ctrl_req_i == `Stop) begin
+        stall       <= 6'b000100;
+        mem_wr_o    <= `WriteDisable;
+        mem_a_o     <= `ZeroWord;
+        mem_dout_o  <= `Zero8;
     end else if (if_ctrl_req_i == `Stop) begin
         stall       <= 6'b000010;      
         mem_wr_o    <= `WriteDisable;

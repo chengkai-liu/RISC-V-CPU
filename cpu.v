@@ -36,6 +36,7 @@ wire[`RegBus]           reg2_data;
 wire[`StallBus]         stall;
 wire                    if_ctrl_req;
 wire                    mem_ctrl_req;
+wire                    branch_ctrl_req;
 
 wire[`InstAddrBus]      if_mem_a;
 wire                    mem_mem_wr;
@@ -145,15 +146,13 @@ stage_if if0(
     .clk(clk_in),       .rst(rst_in),
     .stall(stall),
     .if_mem_din_i(mem_din),
-    .branch_flag_i(branch_flag),    .branch_addr_i(branch_addr),        //.alusel_i(id_alusel_o),
-    .icache_hit_i(icache_hit),      .icache_inst_i(icache_inst),
+    .branch_flag_i(branch_flag),    .branch_addr_i(branch_addr),
+    
 
     // output
     .pc_o(if_pc_o),                 .inst_o(if_inst_o),
     .if_mem_a_o(if_mem_a),          
-    .if_ctrl_req_o(if_ctrl_req),
-    .icache_we_o(icache_we),        .icache_waddr_o(icache_waddr),      .icache_winst_o(icache_winst), 
-    .icache_raddr_o(icache_raddr)
+    .if_ctrl_req_o(if_ctrl_req),    .branch_ctrl_req_o(branch_ctrl_req)
 );
 
 if_id if_id0(
@@ -261,7 +260,7 @@ mem_wb mem_wb0(
 ctrl ctrl0(
     // input
     .rst(rst_in),                   .rdy(rdy_in),
-    .if_ctrl_req_i(if_ctrl_req),    .mem_ctrl_req_i(mem_ctrl_req),
+    .if_ctrl_req_i(if_ctrl_req),    .mem_ctrl_req_i(mem_ctrl_req),      .branch_ctrl_req_i(branch_ctrl_req),
     .if_mem_a_i(if_mem_a),          .mem_mem_a_i(mem_mem_a),
     .mem_mem_wr_i(mem_mem_wr),      .mem_mem_dout_i(mem_mem_dout),
     // output
@@ -269,6 +268,7 @@ ctrl ctrl0(
     .mem_wr_o(mem_wr),              .mem_a_o(mem_a),            .mem_dout_o(mem_dout)
 );
 
+/*
 icache icache0(
     // input
     .clk(clk_in),                   .rst(rst_in),               .rdy(rdy_in),
@@ -277,6 +277,7 @@ icache icache0(
     // output
     .icache_hit_o(icache_hit),      .icache_inst_o(icache_inst)
 );
+*/
 
 dcache dcache0(
     // input 
