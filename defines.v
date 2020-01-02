@@ -28,38 +28,38 @@
 `define Zero8           8'h00;
 
 //----------funct3--------------
-`define NOP_FUNCT3      3'b000
-`define ADDI_FUNCT3     3'b000
-`define ADD_SUB_FUNCT3  3'b000
-`define SLT_FUNCT3      3'b010
-`define SLTI_FUNCT3     3'b010
-`define SLTIU_FUNCT3    3'b011
-`define SLTU_FUNCT3     3'b011 
-`define XORI_FUNCT3     3'b100
-`define XOR_FUNCT3      3'b100
-`define ORI_FUNCT3      3'b110
-`define OR_FUNCT3       3'b110
-`define ANDI_FUNCT3     3'b111
-`define AND_FUNCT3      3'b111
-`define SLLI_FUNCT3     3'b001
-`define SLL_FUNCT3      3'b001
-`define SRLI_SRAI_FUNCT3     3'b101
-`define SRL_SRA_FUNCT3       3'b101
-`define BEQ_FUNCT3      3'b000
-`define BNE_FUNCT3      3'b001
-`define BLT_FUNCT3      3'b100
-`define BGE_FUNCT3      3'b101
-`define BLTU_FUNCT3     3'b110
-`define BGEU_FUNCT3     3'b111      
-`define LB_FUNCT3       3'b000
-`define LH_FUNCT3       3'b001
-`define LW_FUNCT3       3'b010
-`define LBU_FUNCT3      3'b100
-`define LHU_FUNCT3      3'b101
-`define SB_FUNCT3       3'b000
-`define SH_FUNCT3       3'b001
-`define SW_FUNCT3       3'b010
-
+`define NOP_FUNCT3              3'b000
+`define ADDI_FUNCT3             3'b000
+`define ADD_SUB_FUNCT3          3'b000
+`define SLT_FUNCT3              3'b010
+`define SLTI_FUNCT3             3'b010
+`define SLTIU_FUNCT3            3'b011
+`define SLTU_FUNCT3             3'b011 
+`define XORI_FUNCT3             3'b100
+`define XOR_FUNCT3              3'b100
+`define ORI_FUNCT3              3'b110
+`define OR_FUNCT3               3'b110
+`define ANDI_FUNCT3             3'b111
+`define AND_FUNCT3              3'b111
+`define SLLI_FUNCT3             3'b001
+`define SLL_FUNCT3              3'b001
+`define SRLI_SRAI_FUNCT3        3'b101
+`define SRL_SRA_FUNCT3          3'b101
+`define BEQ_FUNCT3              3'b000
+`define BNE_FUNCT3              3'b001
+`define BLT_FUNCT3              3'b100
+`define BGE_FUNCT3              3'b101
+`define BLTU_FUNCT3             3'b110
+`define BGEU_FUNCT3             3'b111      
+`define LB_FUNCT3               3'b000
+`define LH_FUNCT3               3'b001
+`define LW_FUNCT3               3'b010
+`define LBU_FUNCT3              3'b100
+`define LHU_FUNCT3              3'b101
+`define SB_FUNCT3               3'b000
+`define SH_FUNCT3               3'b001
+`define SW_FUNCT3               3'b010
+    
 //------------AluOp------------------
 `define EXE_NOP_OP      8'b00000000
 `define EXE_LUI_OP      8'b00000001
@@ -129,7 +129,7 @@
 `define InstMemNumLog2  17
 
 `define BlockNum        128
-`define BlockNumLog2    7    
+`define BlockNumLog2    7
 
 `define BhtNum          128
 // `define BtbNum          64
