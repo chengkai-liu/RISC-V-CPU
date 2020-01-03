@@ -23,7 +23,7 @@ by 刘成锴
 5. 收数据
 6. 收数据，得到完整指令
 
-structure hazard的情况后面说明。
+structural hazard的情况后面说明。
 
 ## i-cache
 
@@ -33,7 +33,7 @@ structure hazard的情况后面说明。
 
 当添加了icache后，IF的第一周期发送地址，如果cache hit后，第二周期收到指令，取指完成，不用再发送地址，pc寄存器加4，下周期可以取下一条指令。
 
-## 分支预测
+## 动态分支预测 BHT
 
 如果不分支预测，branch指令将在ID阶段对比rs和rt的值判断是否跳转。
 
@@ -43,7 +43,7 @@ structure hazard的情况后面说明。
 
 ## Load/Store
 
-Mem阶段load需要3/4/6周期，store需要2/3/5周期。
+MEM阶段load需要3/4/6周期，store需要2/3/5周期。
 
 ## d-cache
 
@@ -51,7 +51,21 @@ Mem阶段load需要3/4/6周期，store需要2/3/5周期。
 
 当LW或SW指令完成后，会将data和相应addr写入dcache。
 
-添加了dcache后，实现了2周期load。
+添加了dcache后，实现了2周期Load。
+
+## Structural Hazard
+
+当MEM阶段是Load/Store类指令是，由于IF和Load/Store都需要访问内存，产生Structural Hazard。
+
+我采取的策略是向controller发送stall请求，停止IF、ID、EX、WB阶段，暂停流水。当Load/Store结束后，其他阶段继续执行，恢复流水。
+
+## Data Hazard
+
+采取forward的方式，将EX、MEM阶段的结果forward至ID阶段，解决Data Hazard。
+
+## Control Hazard
+
+
 
 ## 创新之处
 
