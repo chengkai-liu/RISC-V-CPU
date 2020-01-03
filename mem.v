@@ -53,7 +53,7 @@ always @ (*) begin
     if (rst == `RstEnable) begin
         mem_ctrl_req_o      <= `NoStop;
     end else if (mem_access == `False_v) begin
-        mem_ctrl_req_o      <= `False_v;
+        mem_ctrl_req_o      <= `NoStop;
     end else if (mem_access == `True_v) begin
         mem_ctrl_req_o      <= ((alusel_i == `EXE_RES_LOAD) || (alusel_i == `EXE_RES_STORE));
     end

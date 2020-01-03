@@ -15,8 +15,6 @@ module icache(
     output reg[`InstBus]            icache_inst_o
 );
 
-// 4*BlockNum Byte(512B) Direct Mapped Cache
-
 reg                     valid_bit[`BlockNum - 1:0];
 reg[`TagBus]            cache_tag[`BlockNum - 1:0];    
 reg[`InstBus]           cache_data[`BlockNum - 1:0];
