@@ -113,6 +113,12 @@ always @ (posedge clk) begin
                             mem_access      <= `False_v;
                             cnt             <= `Mem0;
                         end
+                        `EXE_LBU_OP: begin
+                            load_data       <= {24'b0, dcache_data_i[7:0]};
+                            mem_mem_a_o     <= `ZeroWord;
+                            mem_access      <= `False_v;
+                            cnt             <= `Mem0;
+                        end
                         `EXE_LH_OP: begin
                             load_data       <= {{16{dcache_data_i[15]}}, dcache_data_i[15:0]};
                             mem_mem_a_o     <= `ZeroWord;
@@ -148,6 +154,10 @@ always @ (posedge clk) begin
                             mem_mem_a_o         <= `ZeroWord;
                             mem_access          <= `False_v;
                             cnt                 <= `Mem0; // SB--2CC
+                            // cache
+                            dcache_we_o         <= `WriteEnable;
+                            dcache_waddr_o      <= ma_addr_i;
+                            dcache_wdata_o      <= wdata_i;
                         end
                         `EXE_SH_OP, `EXE_SW_OP: begin
                             mem_mem_a_o         <= ma_addr_i + 1;
@@ -187,6 +197,10 @@ always @ (posedge clk) begin
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
                         cnt                 <= `Mem0; // SH--3CC
+                        // cache
+                        dcache_we_o         <= `WriteEnable;
+                        dcache_waddr_o      <= ma_addr_i;
+                        dcache_wdata_o      <= wdata_i;
                     end
                     `EXE_SW_OP: begin
                         mem_mem_a_o         <= ma_addr_i + 2;

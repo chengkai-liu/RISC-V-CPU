@@ -2,7 +2,9 @@
 
 ## Reference
 
+夏宇闻 《Verilog经典教程》
 
+页号为《Verilog经典教程》中的相应页号。
 
 ```bash
 $ iverilog -o <output-file> <source-file-1> <source-file-2> ... // 编译
