@@ -137,63 +137,63 @@ always @ (*) begin
                 instvalid           <= `InstValid;
                 case (funct3)
                     `BEQ_FUNCT3: begin
-                        aluop_o             <= `EXE_BEQ_OP;
+                        aluop_o                 <= `EXE_BEQ_OP;
                         if (reg1_o == reg2_o) begin
                             branch_flag_o       <= `Branch;
-                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o       <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
                             branch_flag_o       <= `NoBranch;
-                            branch_addr_o   <= pc_i;
+                            branch_addr_o       <= pc_i;
                         end
                     end
                     `BNE_FUNCT3: begin
-                        aluop_o             <= `EXE_BNE_OP;
+                        aluop_o                 <= `EXE_BNE_OP;
                         if (reg1_o != reg2_o) begin
                             branch_flag_o       <= `Branch;
-                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o       <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
                             branch_flag_o       <= `NoBranch;
-                            branch_addr_o   <= pc_i;
+                            branch_addr_o       <= pc_i;
                         end
                     end
                     `BLT_FUNCT3: begin
-                        aluop_o             <= `EXE_BLT_OP;
+                        aluop_o                 <= `EXE_BLT_OP;
                         if ($signed(reg1_o) < $signed(reg2_o)) begin   
                             branch_flag_o       <= `Branch;
-                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o       <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
                             branch_flag_o       <= `NoBranch;
-                            branch_addr_o   <= pc_i;
+                            branch_addr_o       <= pc_i;
                         end
                     end
                     `BGE_FUNCT3: begin
-                        aluop_o             <= `EXE_BGE_OP;
+                        aluop_o                 <= `EXE_BGE_OP;
                         if (!($signed(reg1_o) < $signed(reg2_o))) begin
                             branch_flag_o       <= `Branch;
-                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o       <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
                             branch_flag_o       <= `NoBranch;
-                            branch_addr_o   <= pc_i;
+                            branch_addr_o       <= pc_i;
                         end
                     end
                     `BLTU_FUNCT3: begin
-                        aluop_o             <= `EXE_BLTU_OP;
+                        aluop_o                 <= `EXE_BLTU_OP;
                         if (reg1_o < reg2_o) begin
                             branch_flag_o       <= `Branch;
-                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o       <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
                             branch_flag_o       <= `NoBranch;
-                            branch_addr_o   <= pc_i;
+                            branch_addr_o       <= pc_i;
                         end
                     end
                     `BGEU_FUNCT3: begin
-                        aluop_o             <= `EXE_BGEU_OP;
+                        aluop_o                 <= `EXE_BGEU_OP;
                         if (!(reg1_o < reg2_o)) begin
                             branch_flag_o       <= `Branch;
-                            branch_addr_o   <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+                            branch_addr_o       <= pc_i - 4 + {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                         end else begin
                             branch_flag_o       <= `NoBranch;
-                            branch_addr_o   <= pc_i;
+                            branch_addr_o       <= pc_i;
                         end
                     end
                     default: begin

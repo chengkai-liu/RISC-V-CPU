@@ -90,7 +90,7 @@ always @ (posedge clk) begin
         case (cnt)
             `If0: begin
                 icache_we_o         <= `WriteDisable;
-                if (stall[1] == `NoStop && stall[2] == `NoStop) begin
+                if (stall[0] == `NoStop) begin
                     if_ctrl_req_o           <= `Stop;
                     if_mem_a_o              <= pc;
                     icache_raddr_o          <= pc;
@@ -158,12 +158,12 @@ always @ (posedge clk) begin
                 // branch prediction
                 if (inst_block1[6]) begin
                     if (bht[pc % `BhtNum] == 2'b10 || bht[pc % `BhtNum] == 2'b11) begin
-                        pc        <= pc + {{20{if_mem_din_i[7]}}, inst_block1[7], if_mem_din_i[6:1], inst_block2[3:0], 1'b0};
+                        pc          <= pc + {{20{if_mem_din_i[7]}}, inst_block1[7], if_mem_din_i[6:1], inst_block2[3:0], 1'b0};
                     end else begin
-                        pc        <= pc + 4;
+                        pc          <= pc + 4;
                     end
                 end else begin
-                        pc        <= pc + 4;
+                        pc          <= pc + 4;
                 end
             end
 /*-----------------------------------------------------------------------------*/
