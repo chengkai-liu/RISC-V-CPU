@@ -236,7 +236,7 @@ always @ (posedge clk) begin
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
                         cnt                 <= `Mem0; // SW--5CC
-                        // cache
+                        // cache write
                         dcache_we_o         <= `WriteEnable;
                         dcache_waddr_o      <= ma_addr_i;
                         dcache_wdata_o      <= wdata_i;
@@ -252,7 +252,7 @@ always @ (posedge clk) begin
                         mem_mem_a_o         <= `ZeroWord;
                         mem_access          <= `False_v;
                         cnt                 <= `Mem0; // LW--6CC
-                        // cache
+                        // cache write
                         dcache_we_o         <= `WriteEnable;
                         dcache_waddr_o      <= ma_addr_i;
                         dcache_wdata_o      <= {mem_mem_din_i, data_block3, data_block2, data_block1};
